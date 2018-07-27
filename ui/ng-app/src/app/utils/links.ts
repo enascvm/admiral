@@ -24,12 +24,19 @@ export class Links {
   public static CLUSTERS = Links.RESOURCES + '/clusters';
   public static CONTAINERS = Links.RESOURCES + '/containers';
   public static CONTAINER_DESCRIPTIONS = Links.RESOURCES + '/container-descriptions';
+  public static CONTAINER_NETWORKS = Links.RESOURCES + '/container-networks';
+  public static CONTAINER_VOLUMES =  Links.RESOURCES + '/container-volumes';
   public static GROUPS = '/groups';
   public static PROJECTS = '/projects';
   public static EVENT_LOGS = Links.RESOURCES + '/event-logs';
-  public static PKS_ENDPOINTS = Links.RESOURCES + '/pks/endpoints';
-  public static PKS_CLUSTERS = Links.RESOURCES + '/pks/clusters';
-  public static PKS_CLUSTERS_ADD = Links.RESOURCES + '/pks/clusters-config';
+  public static PKS_RESOURCES = Links.RESOURCES + '/pks';
+  public static PKS_ENDPOINTS = Links.PKS_RESOURCES + '/endpoints';
+  public static PKS_ENDPOINT_CREATE = Links.PKS_RESOURCES + '/create-endpoint';
+  public static PKS_ENDPOINT_TEST_CONNECTION = Links.PKS_RESOURCES + '/create-endpoint?validate=true';
+  public static PKS_CLUSTERS = Links.PKS_RESOURCES + '/clusters';
+  public static PKS_CLUSTERS_ADD = Links.PKS_RESOURCES + '/clusters-config';
+  public static PKS_PLANS = Links.PKS_RESOURCES + '/plans';
+  public static KUBE_CONFIG_CONTENT = Links.RESOURCES + '/kube-config';
   public static DEPLOYMENT_POLICIES = Links.RESOURCES + '/deployment-policies';
 
   public static COMPOSITE_DESCRIPTIONS = Links.RESOURCES + '/composite-descriptions';
@@ -54,6 +61,7 @@ export class Links {
   public static CREDENTIALS = '/core/auth/credentials';
 
   public static REQUESTS = '/requests';
+  public static REQUEST_STATUS = '/request-status';
 
   public static HOST_DATA_COLLECTION =
                             Links.RESOURCES + '/hosts-data-collections/host-info-data-collection';

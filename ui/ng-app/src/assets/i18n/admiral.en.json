@@ -189,7 +189,11 @@
       "ON": "ON",
       "OFF": "OFF",
       "DISABLED": "DISABLED",
-      "WARNING": "WARNING"
+      "WARNING": "WARNING",
+      "PROVISIONING": "PROVISIONING",
+      "RESIZING": "RESIZING",
+      "REMOVING": "REMOVING",
+      "UNREACHABLE": "UNREACHABLE"
     },
     "search": {
       "placeholder": "Search for clusters"
@@ -261,6 +265,167 @@
       "titleVic": "Remove Container Host",
       "confirmation": "Confirm removing of cluster {{clusterName}}. The deployed entities associated to this cluster will be removed as well. The operation cannot be undone.",
       "confirmationVic": "Confirm removing of container host {{clusterName}}. The deployed entities associated to this container host will be removed as well. The operation cannot be undone."
+    },
+    "backLinkTextProject": "Project"
+  },
+  "kubernetes": {
+    "clusters": {
+      "title": "PKS Clusters",
+      "addBtn": "Add Cluster",
+      "newBtn": "New Cluster",
+      "nodeCount": "Nodes",
+      "dashboard": "Dashboard",
+      "edit": {
+        "name": "Name",
+        "nameRequired": "Name is required.",
+        "description": "Description",
+        "url": "URL",
+        "urlRequired": "Cluster URL is required.",
+        "credentials": "Credentials"
+      },
+      "search": {
+        "placeholder": "Search for Clusters"
+      },
+      "add": {
+        "existing": "Existing PKS Cluster",
+        "external": "External Cluster"
+      },
+      "details": {
+        "summary": {
+          "kubeConfigBtn": "KubeConfig",
+          "kubeConfigTooltip": "Download a configuration file for the kubectl command-line tool to gain access to this cluster.",
+          "title": "Summary",
+          "nodeCount": "Nodes:",
+          "dashboard": "Dashboard:",
+          "planName": "Plan:",
+          "dashboardInstalled": "INSTALLED",
+          "dashboardNotInstalled": "NOT INSTALLED",
+          "totalMemory": "Total Memory:"
+        },
+        "nodes": {
+          "title": "Nodes",
+          "searchPlaceholder": "Search for nodes",
+          "nameColumn": "Name",
+          "cpuCountColumn": "# CPUs",
+          "totalMemoryColumn": "Total Memory",
+          "powerState": {
+            "ON": "On",
+            "OFF": "Off"
+          },
+          "count": "nodes"
+        }
+      },
+      "remove": {
+        "title": "Remove Cluster",
+        "confirmation": "Confirm removing of cluster {{clusterName}}. The deployed entities associated to this cluster will be removed as well."
+      },
+      "destroy": {
+        "title": "Destroy Cluster",
+        "confirmation": "Confirm destroying cluster {{clusterName}}. The deployed entities associated to this cluster will be destroyed as well. The operation cannot be undone."
+      }
+    },
+    "deployments": {
+      "title": "Deployments",
+      "search": {
+        "placeholder": "Search for deployments"
+      },
+      "item": {
+        "creation": "Created:",
+        "namespace": "Namespace:",
+        "containersNumber": "Containers:",
+        "restartPolicy": "Restart Policy:",
+        "strategy": "Strategy:",
+        "replicas": "Replicas:",
+        "terminationGracePeriodSeconds": "Termination Grace Period (seconds):",
+        "dnsPolicy": "DNS Policy:",
+        "summaryTitle": "Summary",
+        "containersTitle": "Containers",
+        "containers": {
+          "name": "Name",
+          "image": "Image",
+          "env": "Env"
+        }
+      }
+    },
+    "pods": {
+        "title": "Pods",
+        "search": {
+            "placeholder": "Search for pods"
+        },
+        "item": {
+            "creation": "Created:",
+            "namespace": "Namespace:",
+            "containersNumber": "Containers:",
+            "status": "Status:",
+            "startTime": "Started:",
+            "ip": "IP:",
+            "summaryTitle": "Summary",
+            "containerStatuses": {
+              "title": "Containers",
+              "name": "Container Name",
+              "state": "Status"
+            },
+            "volumes": {
+              "title": "Volumes",
+              "name": "Volume Name",
+              "hostPath": "Path on Host"
+            },
+            "logsTitle": "Logs"
+        }
+    },
+    "services": {
+      "title": "Services",
+      "search": {
+        "placeholder": "Search for services"
+      },
+      "item": {
+        "summaryTitle": "Summary",
+        "creation": "Created:",
+        "namespace": "Namespace:",
+        "ports": "Ports:"
+      }
+    }
+  },
+  "pks": {
+    "new": {
+      "title": "New Cluster",
+      "settings": {
+        "title": "Settings",
+        "fieldTitleEndpoint": "PKS Endpoint",
+        "fieldTitleName": "Cluster Name",
+        "nameFieldRequired": "Cluster name is required.",
+        "fieldTitlePlan": "Plan",
+        "fieldTitleMasterHostName": "Master Host Name",
+        "masterHostNameFieldRequired": "Master host name is required",
+        "fieldTitleMasterHostPort": "Master Host Port",
+        "masterHostPortFieldRequired": "Master host port is required",
+        "fieldTitleNumberNodes": "Worker Nodes",
+        "workerFieldRequired": "Worker field is required. Only integer values bigger than 0 can be entered."
+      }
+    },
+    "edit": {
+      "title": "Edit Cluster"
+    },
+    "add": {
+      "title": "Add Cluster",
+      "existingClusters": {
+        "descriptionText": "Select an endpoint and then select one existing, unassigned Kubernetes cluster to add to the current business group.",
+        "fieldTitleEndpoint": "Endpoint:",
+        "columnTitleName": "Name",
+        "columnTitleHostname": "Hostname",
+        "columnTitleMastersCount": "# Masters",
+        "columnTitleWorkersCount": "# Workers",
+        "columnTitlePlan": "Plan",
+        "columnTitleLastAction": "Last Action",
+        "columnTitleLastActionStatus": "Last Action Status",
+        "columnTitleInAdmiral": "Registered",
+        "multipleSelectedClustersWarning": "Cannot add more than one cluster at a time.",
+        "clusterAlreadyRegisteredWarning": "Cannot add selected cluster. It is already added.",
+        "operationInProgressWarning": "Cannot add selected cluster. There is an operation in progress.",
+        "yes": "Yes",
+        "no": "No",
+        "count": "clusters"
+      }
     }
   },
   "kubernetes": {
@@ -497,7 +662,41 @@
       "pksAddressFieldTitle": "PKS Address",
       "pksAddressRequired": "The PKS Address is required.",
       "testConnectionBtn": "Test Connection",
-      "clustersTabTitle": "Clusters"
+      "assignmentsTabTitle": "Plan Assignments",
+      "assignmentsPlansTitle": "Plans",
+      "clustersTabTitle": "Clusters",
+      "connectionVerified": "Connection to endpoint is successful.",
+      "certificateNotAccepted": "The certificate is not accepted. Cannot proceed.",
+      "assignToProjects": "Assign to Projects",
+      "assignToGroups": "Assign to Groups"
+    }
+  },
+  "requests": {
+    "title": "Requests",
+    "columnContextId": "Context ID",
+    "columnPhase": "Phase",
+    "columnRequest": "Request",
+    "columnDetails": "Details",
+    "count": "Showing latest {{number}} requests",
+    "error": "Error",
+    "eventLogLink": "Go to event log",
+    "containerLink": "Go to container",
+    "compositeComponentLink": "Go to application",
+    "containerNetworkLink": "Go to network",
+    "containerVolumeLink": "Go to volume",
+    "deleteRequest": {
+      "title": "Remove request",
+      "description": "Confirm the removal of the selected requests. The operation cannot be undone."
+    }
+  },
+  "eventLogs": {
+    "title": "Event Logs",
+    "columnDescription": "Description",
+    "columnTimestamp": "Time",
+    "count": "Showing latest {{number}} event logs",
+    "deleteEventLog": {
+      "title": "Remove event log",
+      "description": "Confirm the removal of the selected event logs. The operation cannot be undone."
     }
   },
   "configuration": {
@@ -531,6 +730,7 @@
   "yes": "Yes",
   "remove": "Remove",
   "delete": "Delete",
+  "destroy": "Destroy",
   "details": "Details",
   "verify": "Verify",
   "update": "Update",
@@ -544,6 +744,7 @@
   "noItems": "No items",
   "reload": "Reload",
   "notAvailable": "N/A",
+  "selectAll": "Select All",
   "sessionExpired": "Your session is no longer valid, please log in again!",
   "navigation": {
     "home": "Home",
@@ -577,7 +778,10 @@
     "configuration": "Configuration",
     "logs": "Logs",
     "endpoints": "Endpoints",
-    "pksEndpoints": "PKS Endpoints"
+    "pksEndpoints": "PKS Endpoints",
+    "recentActivity": "Recent Activity",
+    "requests": "Requests",
+    "eventLogs": "Event Logs"
   },
   "search": {
     "occurrence": {

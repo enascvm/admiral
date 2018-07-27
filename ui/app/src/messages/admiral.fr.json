@@ -200,6 +200,7 @@
         "publicTitle": "Clé publique",
         "publicCertificateTitle": "Certificat public",
         "privateCertificateTitle": "Certificat privé",
+        "bearerTokenTitle": "Bearer token",
         "customProperties": "Propriétés personnalisées"
       }
     },
@@ -261,6 +262,7 @@
         "title": "Modèles répandus",
         "titleSearch": "Modèles trouvés",
         "popularRepositories": "Référentiels populaires",
+        "repositoriesSearchWarning": "Spécifiez le terme à rechercher. Impossible de continuer la recherche.",
         "searchImagesTemplatesPlaceholder": "Rechercher des images, des modèles",
         "searchImagesPlaceholder": "Rechercher des images",
         "searchRepositoriesPlaceholder": "Rechercher des référentiels",
@@ -290,7 +292,10 @@
           "closures": "Fermetures",
           "repositories": "Référentiels"
         },
-        "createTemplate": "Modèle"
+        "createTemplate": "Modèle",
+        "addToFavorites": "Ajouter l'image aux favoris",
+        "removeFromFavorites": "Supprimer l'image des favoris",
+        "addedImageToFavoritesMessage": "Image ajoutée aux favoris"
       },
       "details": {
         "create": "Créer un modèle",

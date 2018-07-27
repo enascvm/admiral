@@ -28,6 +28,7 @@ public interface ManagementUriParts {
     String INSTANCE_TYPE_PROFILES = CONFIG + "/instance-types";
     String MIGRATION = CONFIG + "/migration";
     String UNIQUE_PROPERTIES = CONFIG + "/unique-properties";
+    String FAVORITE_IMAGES_FLAG =  CONFIG + "/should-populate-favorites";
 
     String COMPOSITE_DESCRIPTION_UPGRADE_TRANSFORM_PATH = UPGRADE_TRANSFORM_PREFIX
             + "/composite-descriptions";
@@ -69,6 +70,7 @@ public interface ManagementUriParts {
     String TAG_ASSIGNMENT = RESOURCES + "/tag-assignment";
     String CLUSTERS = RESOURCES + "/clusters";
     String FAVORITE_IMAGES = RESOURCES + "/favorite-images";
+    String FAVORITE_IMAGES_POPULATE_EMBEDDED = FAVORITE_IMAGES + "/populate-embedded";
 
     // Projects
     String PROJECTS = "/projects";
@@ -147,7 +149,9 @@ public interface ManagementUriParts {
     String PKS_ENDPOINTS = RESOURCES + PKS_NAMESPACE + "/endpoints";
     String PKS_CREATE_ENDPOINT = RESOURCES + PKS_NAMESPACE + "/create-endpoint";
     String PKS_CLUSTERS = RESOURCES + PKS_NAMESPACE + "/clusters";
-    String PKS_CLUSTERS_CONFIG = RESOURCES + PKS_NAMESPACE +  "/clusters-config";
+    String PKS_PLANS = RESOURCES + PKS_NAMESPACE + "/plans";
+    String PKS_CLUSTERS_CONFIG = RESOURCES + PKS_NAMESPACE + "/clusters-config";
+    String PKS_KUBE_CONFIG_CONTENT = RESOURCES + "/kube-config";
 
     // Request tasks:
     String REQUEST = "/request";
@@ -199,6 +203,9 @@ public interface ManagementUriParts {
     String REQUEST_PROVISION_NAME_PREFIXES_TASKS = REQUEST + "/resource-prefix-tasks";
     String REQUEST_CALLBACK_HANDLER_TASKS = REQUEST + "/callback-handler/";
     String REQUEST_CONTAINER_PORTS_ALLOCATION_TASKS = REQUEST + "/container-ports-allocation-tasks";
+    String REQUEST_PROVISION_PKS_CLUSTER_TASK = REQUEST + "/provision-pks-cluster-task";
+    String REQUEST_REMOVE_PKS_CLUSTER_TASK = REQUEST + "/remove-pks-cluster-task";
+    String REQUEST_RESIZE_PKS_CLUSTER_TASK = REQUEST + "/resize-pks-cluster-task";
 
     String CONFIGURE_HOST = REQUEST + "/configure-host/";
 

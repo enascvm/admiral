@@ -43,7 +43,11 @@ import { ConfigurationComponent } from './views/configuration/configuration.comp
 import { LogsComponent } from './views/logs/logs.component';
 import { SystemLogsComponent } from './views/logs/system-logs.component';
 import { EndpointsComponent } from './views/endpoints/endpoints.component';
+import { EndpointCreateComponent } from './views/endpoints/endpoint-create.component';
 import { EndpointDetailsComponent } from './views/endpoints/endpoint-details.component';
+import { RequestsComponent } from "./views/requests/requests.component";
+import { EventLogsComponent } from "./views/event-logs/event-logs.component";
+import { EndpointAssignmentsComponent } from "./views/endpoints/endpoint-assignments.component";
 
 import { DashboardComponent } from './views/dashboard/dashboard.component';
 import { FormerViewComponent, FormerPlaceholderViewComponent } from './views/former-view/former-view.component';
@@ -70,6 +74,7 @@ import { KubernetesClusterNodesComponent } from './views/kubernetes/clusters/clu
 import { KubernetesClusterAddComponent } from './views/kubernetes/clusters/cluster-add/kubernetes-cluster-add.component';
 import { KubernetesClusterAddExistingComponent } from './views/kubernetes/clusters/cluster-add/kubernetes-cluster-add-existing.component';
 import { KubernetesClusterAddExternalComponent } from './views/kubernetes/clusters/cluster-add-external/kubernetes-cluster-add-external.component';
+import { KubernetesClusterEditExternalComponent } from "./views/kubernetes/clusters/cluster-edit/kubernetes-cluster-edit-external.component";
 
 import { GridViewComponent } from './components/grid-view/grid-view.component';
 import { TableViewComponent } from "./views/table-view/table-view.component";
@@ -80,6 +85,7 @@ import { MaximizableBehaviourComponent } from "./components/maximizable-behaviou
 import { BackButtonComponent } from "./components/back-button/back-button.component";
 import { SimpleSearchComponent } from './components/search/simple-search.component';
 import { DropdownComponent } from './components/dropdown/dropdown.component';
+import { MultiCheckboxSelectorComponent } from "./components/multi-checkbox-selector/multi-checkbox-selector.component";
 import { NavigationContainerComponent } from "./components/navigation-container/navigation-container.component";
 import { LoginComponent } from './components/login/login.component';
 
@@ -147,6 +153,9 @@ export const ADMIRAL_DECLARATIONS = [
   ClusterCreateComponent,
   ClusterEditComponent,
   EndpointsComponent,
+  EndpointCreateComponent,
+  EndpointDetailsComponent,
+  EndpointAssignmentsComponent,
   KubernetesClustersComponent,
   KubernetesClusterNewComponent,
   KubernetesClusterNewSettingsComponent,
@@ -156,7 +165,9 @@ export const ADMIRAL_DECLARATIONS = [
   KubernetesClusterAddComponent,
   KubernetesClusterAddExistingComponent,
   KubernetesClusterAddExternalComponent,
-  EndpointDetailsComponent,
+  KubernetesClusterEditExternalComponent,
+  RequestsComponent,
+  EventLogsComponent,
 
   GridViewComponent,
   TableViewComponent,
@@ -166,6 +177,7 @@ export const ADMIRAL_DECLARATIONS = [
   MaximizableBehaviourComponent,
   BackButtonComponent,
   DropdownComponent,
+  MultiCheckboxSelectorComponent,
   NavigationContainerComponent,
   LoginComponent,
 

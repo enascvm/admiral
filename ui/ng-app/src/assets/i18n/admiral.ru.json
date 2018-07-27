@@ -106,16 +106,16 @@
         "delete": "Удалить",
         "nameTitle": "Имя",
         "statusTitle": "Состояние",
-        "scopeTitle": "Охват",
+        "scopeTitle": "Область",
         "addressTitle": "Адрес",
         "searchPlaceholder": "Поиск реестров",
         "scope": {
-          "global": "Глобальный",
+          "global": "Глобально",
           "project": "Проект"
         },
         "status": {
-          "active": "Активный",
-          "disabled": "Отключенный"
+          "active": "Активно",
+          "disabled": "Отключено"
         },
         "deleteConfirmation": {
           "title": "Удаление реестров проекта",
@@ -133,7 +133,7 @@
           "fieldCredentials": "Учетные данные для входа"
         },
         "count": "реестр.",
-        "insecureRegistryHint": "Обнаружен реестр, основанный на обычном протоколе HTTP! Подключение к этому реестру не защищено. Убедитесь, что узлы правильно настроены и способны подключиться к реестру. <a target=\"_blank\" href=\"https://docs.docker.com/registry/insecure/#/deploying-a-plain-http-registry\">Подробнее</a>"
+        "insecureRegistryHint": "Обнаружен простой HTTP-реестр. Ваше подключение к этому реестру не защищено. Убедитесь, что узлы правильно настроены и что подключение к ним возможно. <a target=\"_blank\" href=\"https://docs.docker.com/registry/insecure/#/deploying-a-plain-http-registry\">Подробнее</a>"
     },
     "config": {
       "title": "Конфигурация",
@@ -189,7 +189,13 @@
       "ON": "Включено",
       "OFF": "ВЫКЛ.",
       "DISABLED": "ОТКЛЮЧЕНО",
-      "WARNING": "ПРЕДУПРЕЖДЕНИЕ"
+      "WARNING": "ПРЕДУПРЕЖДЕНИЕ",
+      "PROVISIONING": "ПОДГОТОВКА",
+      "RESIZING": "ИЗМЕНЕНИЕ РАЗМЕРА",
+      "REMOVING": "УДАЛЕНИЕ"
+    },
+    "search": {
+      "placeholder": "Найти кластеры"
     },
     "search": {
       "placeholder": "Найти кластеры"
@@ -261,6 +267,169 @@
       "titleVic": "Удалить узел контейнера",
       "confirmation": "Подтвердите удаление кластера {{clusterName}}. Развернутые объекты, связанные с этим кластером, будут также удалены. Это действие невозможно отменить.",
       "confirmationVic": "Подтвердите удаление узла контейнера {{clusterName}}. Развернутые объекты, связанные с этим узлом контейнера, будут также удалены. Это действие невозможно отменить."
+    },
+    "backLinkTextProject": "Проект"
+  },
+  "kubernetes": {
+    "clusters": {
+      "title": "Кластеры PKS",
+      "addBtn": "Добавить кластер",
+      "newBtn": "Создать кластер",
+      "nodeCount": "Узлы",
+      "dashboard": "Панель мониторинга",
+      "edit": {
+        "name": "Имя",
+        "nameRequired": "Необходимо указать имя.",
+        "description": "Описание",
+        "url": "URL-адрес",
+        "urlRequired": "Необходимо указать URL-адрес кластера.",
+        "credentials": "Учетные данные"
+      },
+      "search": {
+        "placeholder": "Найти кластеры"
+      },
+      "add": {
+        "existing": "Существующий кластер PKS",
+        "external": "Внешний кластер"
+      },
+      "details": {
+        "summary": {
+          "kubeConfigBtn": "KubeConfig",
+          "kubeConfigTooltip": "Загрузите файл конфигурации для программы командной строки kubectl, чтобы получить доступ к этому кластеру.",
+          "title": "Сводка",
+          "nodeCount": "Узлы:",
+          "dashboard": "Панель мониторинга:",
+          "planName": "План:",
+          "dashboardInstalled": "УСТАНОВЛЕНО",
+          "dashboardNotInstalled": "НЕ УСТАНОВЛЕНО",
+          "totalMemory": "Общий объем памяти:"
+        },
+        "nodes": {
+          "title": "Узлы",
+          "searchPlaceholder": "Искать узлы",
+          "nameColumn": "Имя",
+          "cpuCountColumn": "Количество ЦП",
+          "totalMemoryColumn": "Общий объем памяти",
+          "powerState": {
+            "ON": "Включено",
+            "OFF": "Отключено"
+          },
+          "count": "Узлы"
+        }
+      },
+      "remove": {
+        "title": "Удалить кластер",
+        "confirmation": "Подтвердите удаление кластера {{clusterName}}. Развернутые объекты, связанные с этим кластером, будут также удалены."
+      },
+      "destroy": {
+        "title": "Уничтожение кластера",
+        "confirmation": "Подтвердите уничтожение кластера {{clusterName}}. Развернутые объекты, связанные с этим кластером, будут также уничтожены. Это действие невозможно отменить."
+      }
+    },
+    "deployments": {
+      "title": "Развертывания",
+      "search": {
+        "placeholder": "Поиск развертываний"
+      },
+      "item": {
+        "creation": "Создано:",
+        "namespace": "Пространство имен
+:",
+        "containersNumber": "Контейнеры:",
+        "restartPolicy": "Политика перезапуска
+:",
+        "strategy": "Стратегия:",
+        "replicas": "Реплики:",
+        "terminationGracePeriodSeconds": "Льготный период прерывания (в секундах):",
+        "dnsPolicy": "Политика DNS:",
+        "summaryTitle": "Сводка",
+        "containersTitle": "Контейнеры",
+        "containers": {
+          "name": "Имя",
+          "image": "Образ",
+          "env": "Среда"
+        }
+      }
+    },
+    "pods": {
+        "title": "Элементы Pod",
+        "search": {
+            "placeholder": "Поиск элементов Pod"
+        },
+        "item": {
+            "creation": "Создано:",
+            "namespace": "Пространство имен
+:",
+            "containersNumber": "Контейнеры:",
+            "status": "Состояние:",
+            "startTime": "Запущено:",
+            "ip": "IP-адрес:",
+            "summaryTitle": "Сводка",
+            "containerStatuses": {
+              "title": "Контейнеры",
+              "name": "Имя контейнера",
+              "state": "Состояние"
+            },
+            "volumes": {
+              "title": "Тома",
+              "name": "Имя тома",
+              "hostPath": "Расположение на узле"
+            },
+            "logsTitle": "Журналы"
+        }
+    },
+    "services": {
+      "title": "Службы",
+      "search": {
+        "placeholder": "Поиск служб"
+      },
+      "item": {
+        "summaryTitle": "Сводка",
+        "creation": "Создано:",
+        "namespace": "Пространство имен
+:",
+        "ports": "Порты:"
+      }
+    }
+  },
+  "pks": {
+    "new": {
+      "title": "Создать кластер",
+      "settings": {
+        "title": "Параметры",
+        "fieldTitleEndpoint": "Конечная точка PKS",
+        "fieldTitleName": "Имя кластера",
+        "nameFieldRequired": "Требуется указать имя кластера.",
+        "fieldTitlePlan": " План",
+        "fieldTitleMasterHostName": "Имя ведущего узла",
+        "fieldTitleMasterHostPort": "Порт ведущего узла",
+        "fieldTitleNumberNodes": "Узлы рабочих процессов",
+        "workerFieldRequired": "Поле рабочего процесса является обязательным. Можно ввести только целое число больше 0."
+      }
+    },
+    "edit": {
+      "title": "Изменить кластер"
+    },
+    "add": {
+      "title": "Добавить кластер",
+      "existingClusters": {
+        "descriptionText": "Select an endpoint and then select one existing, unassigned Kubernetes cluster to add to the current business group.",
+        "fieldTitleEndpoint": "Конечная точка:",
+        "columnTitleName": "Имя",
+        "columnTitleHostname": "Имя узла",
+        "columnTitleMastersCount": "Количество основных узлов",
+        "columnTitleWorkersCount": "Количество рабочих процессов",
+        "columnTitlePlan": " План",
+        "columnTitleLastAction": "Action",
+        "columnTitleLastActionStatus": "Status",
+        "columnTitleInAdmiral": "Зарегистрирован",
+        "multipleSelectedClustersWarning": "Cannot add more than one cluster at a time.",
+        "clusterAlreadyRegisteredWarning": "Cannot add selected cluster. It is already added.",
+        "operationInProgressWarning": "Cannot add selected cluster. There is an operation in progress.",
+        "yes": "Да",
+        "no": "Нет",
+        "count": "Кластеры"
+      }
     }
   },
   "kubernetes": {
@@ -364,7 +533,7 @@
   "endpoints": {
     "title": "Конечные точки",
     "searchPlaceholder": "Искать конечные точки",
-    "new": "Создать конечную точку",
+    "new": "Новая конечная точка",
     "delete": "Удалить",
     "deleteConfirmation": {
       "title": "Удаление конечных точек",
@@ -385,9 +554,12 @@
       "credentials": "Учетные данные",
       "pksAddressFieldTitle": "PKS-адрес",
       "pksAddressRequired": "Необходимо указать PKS-адрес.",
-      "createBtn": "Создать",
       "testConnectionBtn": "Проверить подключение",
-      "clustersTabTitle": "Кластеры"
+      "clustersTabTitle": "Кластеры",
+      "connectionVerified": "Подключение к конечной точке успешно установлено.",
+      "certificateNotAccepted": "Сертификат не будет принят. Невозможно продолжить.",
+      "assignToProjects": "Назначить проектам",
+      "assignToGroups": "Назначить группам"
     }
   },
   "configuration": {
@@ -416,10 +588,13 @@
   },
   "edit": "Изменить",
   "save": "Сохранить",
+  "create": "Создание",
   "add": "Добавить",
   "yes": "Да",
   "remove": "Удалить",
   "delete": "Удалить",
+  "destroy": "Удалить",
+  "details": "Сведения",
   "verify": "Проверить",
   "update": "Обновить",
   "cancel": "Отмена",
@@ -432,6 +607,7 @@
   "noItems": "Нет элементов",
   "reload": "Перезагрузить",
   "notAvailable": "Н/д",
+  "selectAll": "Выбрать все",
   "sessionExpired": "Ваш сеанс прекращен. Выполните вход повторно.",
   "navigation": {
     "home": "Главная страница",
@@ -442,9 +618,15 @@
     "networks": "Сети",
     "volumes": "Тома",
     "closures": "Закрытия",
+    "kubernetes": {
+      "title": "Kubernetes",
+      "deployments": "Развертывания",
+      "pods": "Элементы Pod",
+      "services": "Службы"
+    },
     "library": "Библиотека",
     "templates": "Шаблоны",
-    "repositories": "Репозитории",
+    "repositories": "Все репозитории",
     "internalRepositories": "Встроенные репозитории",
     "publicRepositories": "Репозитории",
     "infrastructure": "Инфраструктура",

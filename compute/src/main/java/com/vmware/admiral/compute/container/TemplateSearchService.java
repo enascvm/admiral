@@ -57,7 +57,6 @@ import com.vmware.admiral.compute.container.ContainerDescriptionService.Containe
 import com.vmware.admiral.compute.container.TemplateSpec.TemplateType;
 import com.vmware.admiral.image.service.ContainerImageService;
 import com.vmware.admiral.service.common.MultiTenantDocument;
-import com.vmware.admiral.service.common.RegistryService.RegistryState;
 import com.vmware.xenon.common.LocalizableValidationException;
 import com.vmware.xenon.common.Operation;
 import com.vmware.xenon.common.ServiceDocument;
@@ -429,19 +428,12 @@ public class TemplateSearchService extends StatelessService {
                     } else {
                         RegistrySearchResponse response = o.getBody(RegistrySearchResponse.class);
                         if (response.results != null) {
-                            filterResultsByRegistryPath(response.results, tenantLinks, (res, t) -> {
-                                if (t != null && !t.isEmpty()) {
-                                    resultConsumer.accept(error(t.iterator().next()), null);
-                                    return;
-                                }
-
-                                for (Result result : res) {
-                                    resultConsumer.accept(result(createTemplateFromImageResult(
-                                            result), res.size()), null);
-                                }
-
-                                resultConsumer.accept(noResult(), response.isPartialResult);
-                            });
+                            List<Result> results = response.results;
+                            for (Result result : results) {
+                                resultConsumer.accept(result(createTemplateFromImageResult(
+                                        result), results.size()), null);
+                            }
+                            resultConsumer.accept(noResult(), response.isPartialResult);
                         }
                     }
                 }));

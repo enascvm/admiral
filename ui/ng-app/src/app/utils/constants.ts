@@ -33,7 +33,18 @@ export const Constants = {
             ON: "ON",
             OFF: "OFF",
             DISABLED: "DISABLED",
-            WARNING: "WARNING"
+            WARNING: "WARNING",
+            PROVISIONING: "PROVISIONING",
+            RESIZING: "RESIZING",
+            REMOVING: "REMOVING",
+            UNREACHABLE: "UNREACHABLE"
+        },
+        pks: {
+            lastActionState: {
+                succeeded: "succeeded",
+                inProgress: "in progress",
+                failed: "failed"
+            }
         },
         DEFAULT_VIEW_REFRESH_INTERVAL: 60000,
         DEFAULT_RESCAN_INTERVAL: 30000,
@@ -45,5 +56,26 @@ export const Constants = {
             SUCCESS: 'alert-success',
             WARNING: 'alert-warning'
         }
+    },
+    recentActivities: {
+        requests: {
+            FAILED: "FAILED",
+            CANCELLED: "CANCELLED",
+            CREATED: "CREATED",
+            STARTED: "STARTED",
+            navigation: {
+                compositeComponent: "composite-component",
+                container: "container",
+                network: "network",
+                volume: "volume"
+            }
+        },
+        eventLogs: {
+            INFO: 'INFO',
+            WARNING: 'WARNING',
+            ERROR: 'ERROR'
+        },
+        MAX_ACTIVITIES_COUNT: 100,
+        REFRESH_INTERVAL: 30000
     }
 };

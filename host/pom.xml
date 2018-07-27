@@ -17,17 +17,13 @@
     <parent>
         <groupId>com.vmware.admiral</groupId>
         <artifactId>admiral</artifactId>
-        <version>1.4.1-SNAPSHOT</version>
+        <version>1.4.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>admiral-host</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
-        <dependency>
-            <groupId>com.vmware.photon.controller</groupId>
-            <artifactId>photon-model</artifactId>
-        </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>admiral-auth</artifactId>

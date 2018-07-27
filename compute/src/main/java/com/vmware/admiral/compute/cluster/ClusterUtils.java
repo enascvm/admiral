@@ -11,8 +11,11 @@
 
 package com.vmware.admiral.compute.cluster;
 
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_CLUSTER_STATUS_REMOVING_PROP_NAME;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_CLUSTER_STATUS_RESIZING_PROP_NAME;
 import static com.vmware.admiral.compute.ContainerHostUtil.isKubernetesHost;
 import static com.vmware.admiral.compute.ContainerHostUtil.isVicHost;
+import static com.vmware.admiral.compute.cluster.ClusterService.ENFORCED_CLUSTER_STATUS_PROP;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,6 +42,7 @@ import com.vmware.admiral.compute.cluster.ClusterService.ClusterStatus;
 import com.vmware.admiral.compute.cluster.ClusterService.ClusterType;
 import com.vmware.admiral.compute.container.ContainerHostDataCollectionService;
 import com.vmware.admiral.compute.container.GroupResourcePlacementService.GroupResourcePlacementState;
+import com.vmware.admiral.compute.content.kubernetes.KubernetesUtil;
 import com.vmware.photon.controller.model.resources.ComputeService.ComputeState;
 import com.vmware.photon.controller.model.resources.ResourcePoolService;
 import com.vmware.photon.controller.model.resources.ResourcePoolService.ResourcePoolState;
@@ -114,7 +118,8 @@ public class ClusterUtils {
                 if (!Strings.isNullOrEmpty(rawCustomOptions)) {
                     rawCustomOptions = rawCustomOptions.replaceAll("[{}]", " ").trim();
                     if (!Strings.isNullOrEmpty(rawCustomOptions)) {
-                        Map<String, String> properties = Splitter.on(",").withKeyValueSeparator("=").split(rawCustomOptions);
+                        Map<String, String> properties = Splitter.on(",").withKeyValueSeparator("=")
+                                .split(rawCustomOptions);
                         hostsFilter = properties.get(ClusterService.HOSTS_FILTER_QUERY_PARAM);
                     }
                 }
@@ -190,7 +195,8 @@ public class ClusterUtils {
                     if (limit != null && limit > 0) {
                         queryTask.querySpec.resultLimit = limit;
                     } else {
-                        queryTask.querySpec.resultLimit = ServiceDocumentQuery.DEFAULT_QUERY_RESULT_LIMIT;
+                        queryTask.querySpec.resultLimit =
+                                ServiceDocumentQuery.DEFAULT_QUERY_RESULT_LIMIT;
                     }
                     queryTask.documentExpirationTimeMicros = ServiceDocumentQuery
                             .getDefaultQueryExpiration();
@@ -249,7 +255,7 @@ public class ClusterUtils {
                 .setBody(queryTask)
                 .setReferer(host.getUri()), QueryTask.class)
                 .thenCompose(qr -> {
-                    if (qr == null || qr.results == null || qr.results == null
+                    if (qr == null || qr.results == null
                             || qr.results.documentLinks == null
                             || qr.results.documentLinks.size() != 1) {
                         throw new ServiceNotFoundException(
@@ -297,7 +303,10 @@ public class ClusterUtils {
                         ClusterService.CLUSTER_TYPE_CUSTOM_PROP)
                         .orElse(type.toString()));
         if (computeStates == null || computeStates.isEmpty()) {
-            ePZClusterDto.status = ClusterStatus.DISABLED;
+            ePZClusterDto.status = getEnforcedStatus(resourcePoolState);
+            if (ePZClusterDto.status == null) {
+                ePZClusterDto.status = ClusterStatus.DISABLED;
+            }
             ePZClusterDto.containerCount = 0;
             ePZClusterDto.systemContainersCount = 0;
             ePZClusterDto.totalCpu = 0.0;
@@ -323,7 +332,7 @@ public class ClusterUtils {
             int systemContainerCounter = 0;
             ePZClusterDto.nodes = new HashMap<>();
             for (ComputeState computeState : computeStates) {
-                if (!computeState.powerState.equals(computeStates.get(0).powerState)) {
+                if (computeState.powerState != computeStates.get(0).powerState) {
                     ePZClusterDto.status = ClusterStatus.WARNING;
                 }
                 ePZClusterDto.nodeLinks.add(computeState.documentSelfLink);
@@ -339,7 +348,13 @@ public class ClusterUtils {
                         .orElse(0);
             }
             if (ePZClusterDto.status == null) {
-                ePZClusterDto.status = ClusterUtils.computeToClusterStatus(computeStates.get(0));
+                if (isPKSClusterBeingResized(computeStates.get(0))) {
+                    ePZClusterDto.status = ClusterStatus.RESIZING;
+                } else if (isPKSClusterBeingRemoved(computeStates.get(0))) {
+                    ePZClusterDto.status = ClusterStatus.REMOVING;
+                } else {
+                    ePZClusterDto.status = ClusterUtils.computeToClusterStatus(computeStates.get(0));
+                }
             }
 
             ePZClusterDto.containerCount = containerCounter;
@@ -415,6 +430,27 @@ public class ClusterUtils {
         }
         ClusterType filter = ClusterType.valueOf(typeFilter);
 
-        return isFilterExclusive ^ cluster.type.equals(filter);
+        return isFilterExclusive ^ cluster.type == filter;
+    }
+
+    private static ClusterStatus getEnforcedStatus(ResourcePoolState resourcePoolState) {
+        try {
+            String s = resourcePoolState.customProperties.get(ENFORCED_CLUSTER_STATUS_PROP);
+            return ClusterStatus.valueOf(s);
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    private static boolean isPKSClusterBeingResized(ComputeState host) {
+        return KubernetesUtil.isPKSManagedHost(host)
+                && host.customProperties != null
+                && host.customProperties.containsKey(PKS_CLUSTER_STATUS_RESIZING_PROP_NAME);
+    }
+
+    private static boolean isPKSClusterBeingRemoved(ComputeState host) {
+        return KubernetesUtil.isPKSManagedHost(host)
+                && host.customProperties != null
+                && host.customProperties.containsKey(PKS_CLUSTER_STATUS_REMOVING_PROP_NAME);
     }
 }

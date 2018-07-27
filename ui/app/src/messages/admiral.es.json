@@ -200,6 +200,7 @@
         "publicTitle": "Clave pública",
         "publicCertificateTitle": "Certificado público",
         "privateCertificateTitle": "Certificado privado",
+        "bearerTokenTitle": "Bearer token",
         "customProperties": "Propiedades personalizadas"
       }
     },
@@ -261,6 +262,7 @@
         "title": "Plantillas populares",
         "titleSearch": "Plantillas encontradas",
         "popularRepositories": "Repositorios populares",
+        "repositoriesSearchWarning": "Especifique el término que desea buscar. La búsqueda no puede continuar.",
         "searchImagesTemplatesPlaceholder": "Buscar imágenes, plantillas",
         "searchImagesPlaceholder": "Buscar imágenes",
         "searchRepositoriesPlaceholder": "Buscar repositorios",
@@ -290,7 +292,10 @@
           "closures": "Clausuras",
           "repositories": "Repositorios"
         },
-        "createTemplate": "Plantilla"
+        "createTemplate": "Plantilla",
+        "addToFavorites": "Añadir imagen a Favoritos",
+        "removeFromFavorites": "Quitar imagen de Favoritos",
+        "addedImageToFavoritesMessage": "Imagen añadida a Favoritos"
       },
       "details": {
         "create": "Crear plantilla",

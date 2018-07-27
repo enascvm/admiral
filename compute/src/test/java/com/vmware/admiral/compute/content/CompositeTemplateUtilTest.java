@@ -29,6 +29,7 @@ import static com.vmware.admiral.compute.content.CompositeTemplateUtil.serialize
 import static com.vmware.admiral.compute.content.CompositeTemplateUtil.serializeDockerCompose;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -83,7 +84,7 @@ public class CompositeTemplateUtilTest {
 
         String template1Yaml = serializeCompositeTemplate(template1);
 
-        assertEqualsYamls(expectedTemplateYaml, template1Yaml);
+        assertEqualsYamls(expectedTemplateYaml, template1Yaml, true);
 
         // Docker Compose with environment values as dictionary
 
@@ -103,7 +104,7 @@ public class CompositeTemplateUtilTest {
 
         String template2Yaml = serializeCompositeTemplate(template2);
 
-        assertEqualsYamls(expectedTemplateYaml, template2Yaml);
+        assertEqualsYamls(expectedTemplateYaml, template2Yaml, true);
     }
 
     @Test
@@ -133,9 +134,9 @@ public class CompositeTemplateUtilTest {
         String template1Yaml = serializeCompositeTemplate(template1);
 
         assertEqualsYamls(toUnixLineEnding(expectedTemplateYaml),
-                toUnixLineEnding(getContent("composite.simple.network.expected2.yaml")));
+                toUnixLineEnding(getContent("composite.simple.network.expected2.yaml")), true);
         assertEqualsYamls(toUnixLineEnding(template1Yaml),
-                toUnixLineEnding(getContent("composite.simple.network.yaml")));
+                toUnixLineEnding(getContent("composite.simple.network.yaml")), true);
 
         // Docker Compose with complex network entities
 
@@ -161,7 +162,7 @@ public class CompositeTemplateUtilTest {
         String template2Yaml = serializeCompositeTemplate(template2);
 
         assertEqualsYamls(toUnixLineEnding(getContent("composite.simple.network.expected.yaml")),
-                toUnixLineEnding(template2Yaml));
+                toUnixLineEnding(template2Yaml), true);
     }
 
     @Test
@@ -189,7 +190,7 @@ public class CompositeTemplateUtilTest {
 
         String template1Yaml = serializeCompositeTemplate(template1);
 
-        assertEqualsYamls(expectedTemplateYaml, template1Yaml);
+        assertEqualsYamls(expectedTemplateYaml, template1Yaml, true);
 
         // Docker Compose with complex volume entities
 
@@ -214,7 +215,7 @@ public class CompositeTemplateUtilTest {
 
         String template2Yaml = serializeCompositeTemplate(template2);
 
-        assertEqualsYamls(expectedTemplateYaml, template2Yaml);
+        assertEqualsYamls(expectedTemplateYaml, template2Yaml, true);
     }
 
     @Test
@@ -310,14 +311,36 @@ public class CompositeTemplateUtilTest {
         assertEqualsYamls(expectedComposeYaml, compose2Yaml);
     }
 
-    @SuppressWarnings("rawtypes")
     public static void assertEqualsYamls(String expected, String actual) throws IOException {
+        assertEqualsYamls(expected, actual, false);
+    }
+
+    @SuppressWarnings("rawtypes")
+    public static void assertEqualsYamls(String expected, String actual, boolean ignoreEmptyValues) throws IOException {
         Map expectedMap = YamlMapper.objectMapper().readValue(expected, Map.class);
         Map actualMap = YamlMapper.objectMapper().readValue(actual, Map.class);
 
+        if (ignoreEmptyValues) {
+            removeEmptyValues(expectedMap);
+            removeEmptyValues(actualMap);
+        }
         Logger.getLogger(CompositeTemplateUtilTest.class.getName()).log(Level.INFO,
-                "assertEqualsYamls : expected=<" + expected + "> and actual=<" + actual + ">");
+                "ignoreEmptyValues: " + ignoreEmptyValues +
+                      " \nassertEqualsYamls : expected=<" + YamlMapper.objectMapper().writeValueAsString(expectedMap) +
+                      "> and actual=<" + YamlMapper.objectMapper().writeValueAsString(actualMap) + ">");
         assertEquals(expectedMap, actualMap);
+    }
+
+    private static void removeEmptyValues(Map<String, Object> map) {
+        for (String key : map.keySet()) {
+            Object value = map.get(key);
+            if (value instanceof Map) {
+                removeEmptyValues((Map) value);
+            }
+            if (value instanceof Collection && ((Collection) value).isEmpty()) {
+                map.remove(key);
+            }
+        }
     }
 
     @Test
@@ -488,7 +511,7 @@ public class CompositeTemplateUtilTest {
 
         expectedContent = expectedContent.replace("h5-name", "h5");
 
-        assertEqualsYamls(toUnixLineEnding(expectedContent), toUnixLineEnding(content));
+        assertEqualsYamls(toUnixLineEnding(expectedContent), toUnixLineEnding(content), true);
 
         DockerCompose compose = fromCompositeTemplateToDockerCompose(template);
 
@@ -545,7 +568,7 @@ public class CompositeTemplateUtilTest {
         expectedContent = expectedContent.replace("h5-name", "h5");
 
         assertEqualsYamls(toUnixLineEnding(getContent("composite.complex.network.expected.yaml")),
-                toUnixLineEnding(content));
+                toUnixLineEnding(content), true);
 
         DockerCompose compose = fromCompositeTemplateToDockerCompose(template);
 
@@ -573,7 +596,7 @@ public class CompositeTemplateUtilTest {
 
         String content = serializeCompositeTemplate(template);
 
-        assertEqualsYamls(toUnixLineEnding(expectedContent), toUnixLineEnding(content));
+        assertEqualsYamls(toUnixLineEnding(expectedContent), toUnixLineEnding(content), true);
 
         DockerCompose compose = fromCompositeTemplateToDockerCompose(template);
 

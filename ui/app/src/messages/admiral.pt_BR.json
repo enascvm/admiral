@@ -200,6 +200,7 @@
         "publicTitle": "Chave pública",
         "publicCertificateTitle": "Certificado público",
         "privateCertificateTitle": "Certificado privado",
+        "bearerTokenTitle": "Bearer token",
         "customProperties": "Propriedades personalizadas"
       }
     },
@@ -261,6 +262,7 @@
         "title": "Modelos Populares",
         "titleSearch": "Modelos Encontrados",
         "popularRepositories": "Repositórios populares",
+        "repositoriesSearchWarning": "Especifique o termo a ser pesquisado. A pesquisa não pode continuar.",
         "searchImagesTemplatesPlaceholder": "Procurar imagens, modelos",
         "searchImagesPlaceholder": "Procurar imagens",
         "searchRepositoriesPlaceholder": "Pesquisar repositórios",
@@ -269,6 +271,7 @@
         "manageRegistry": "Gerenciar Registros",
         "provision": "Provisionar",
         "provisionAdditionalInfo": "Inserir informações adicionais",
+        "provisionKubernetesDeployment": "Provisionar em Kubernetes",
         "editTemplate": "Editar/Exibir Detalhes",
         "official": "Oficial",
         "trusted": "Confiável",
@@ -289,7 +292,10 @@
           "closures": "Execuções rápidas",
           "repositories": "Repositórios"
         },
-        "createTemplate": "Modelo"
+        "createTemplate": "Modelo",
+        "addToFavorites": "Adicionar Imagem aos Favoritos",
+        "removeFromFavorites": "Remover Imagem dos Favoritos",
+        "addedImageToFavoritesMessage": "Imagem adicionada aos favoritos"
       },
       "details": {
         "create": "Criar Modelo",
@@ -355,9 +361,9 @@
           "driverOptions": {
             "label": "Opções de Driver",
             "keyTitle": "Opção",
-            "keyHint": "Exemplo: size",
+            "keyHint": "Exemplo: tamanho",
             "valueTitle": "Valor",
-            "valueHint": "Exemplo: 100m"
+            "valueHint": "Exemplo: 100 m"
           },
           "existingVolume": "Existente",
           "showingCount": "Mostrando {{count}} de {{totalCount}}",
@@ -474,7 +480,7 @@
         "addButton": "Registro",
         "addressColumn": "Endereço",
         "nameColumn": "Nome",
-        "statusColumn": "Status"
+        "statusColumn": "Habilitado"
       },
       "edit": {
         "createNew": "Novo Registro",
@@ -1011,6 +1017,7 @@
       },
       "request": {
         "title": "Provisionar um Contêiner",
+        "kubernetesDeploymentTitle": "Provisionar uma Implantação de Kubernetes",
         "provision": "Provisionar",
         "saveTemplate": "Salvar como Modelo",
         "tabs": {
@@ -1100,6 +1107,7 @@
           "workingDirectoryDescription": "O diretório de trabalho no qual os comandos devem ser executados",
           "clusterSize": "Tamanho do Cluster",
           "clusterSizeDescription": "O número de nós a serem provisionados",
+          "kubernetesReplicas": "Réplicas",
           "restartPolicy": "Política de Reinício",
           "restartPolicyDescription": "O comportamento a ser aplicado quando o contêiner é encerrado. Defina o valor como \"sempre\" para sempre reiniciar ou como \"em caso de falha\" para reiniciar apenas quando o código de encerramento do contêiner for diferente de zero. Se a opção \"em caso de falha\" for usada, a contagem máxima de reinícios controlará o número de novas tentativas antes de uma desistência. O padrão é não reiniciar.",
           "restartPolicyType": {
@@ -1365,6 +1373,12 @@
     "nameHint": "Exemplo: speedchecker",
     "value": "Valor",
     "valueHint": "Exemplo: slow"
+  },
+  "search": {
+    "occurrence": {
+      "all": "Corresponder Tudo",
+      "any": "Corresponder Qualquer"
+    }
   },
   "yes": "Sim",
   "no": "Não",

@@ -13,6 +13,7 @@ import * as I18n from 'i18next';
 import { Constants } from './constants';
 import { ConfigUtils } from './config-utils';
 import { FT } from './ft';
+import { Roles } from './roles';
 
 const LOGIN_PATH="/login/";
 
@@ -166,6 +167,24 @@ export class Utils {
     return (value === '') ? null : value;
   }
 
+  public static sortObjectArrayByField(arr: any[], fieldName: string): any[] {
+    return arr && arr.sort((obj1, obj2) => {
+      if (!obj1[fieldName] || !obj2[fieldName]) {
+        return 0;
+      }
+
+      if (obj1[fieldName] > obj2[fieldName]) {
+        return 1;
+      }
+
+      if (obj1[fieldName] < obj2[fieldName]) {
+        return -1;
+      }
+
+      return 0;
+    });
+  }
+
   public static getURLParts(url) {
     var noProtocol = false;
     if (url.search(/.*:\/\//) !== 0) {
@@ -275,27 +294,20 @@ export class Utils {
   }
 
   public static isAccessAllowed(securityContext, projectSelfLink, roles): boolean {
-    if (FT.isApplicationEmbedded()) {
-      return true;
-    }
-
     if (!roles) {
       throw new Error("Roles not provided!");
     }
 
+    // allow access to everything when no auth
     if (!securityContext) {
-        return false;
+        return true;
     }
 
     // check for system roles
-    let securityContextRoles = securityContext.roles;
-    if (securityContextRoles) {
-      for (var i = 0; i < securityContextRoles.length; i += 1) {
-        let role = securityContextRoles[i];
-        if (roles.indexOf(role) > -1) {
-          return true;
-        }
-      };
+    let hasSystemRole = Utils.hasSystemRole(securityContext, roles);
+
+    if (hasSystemRole) {
+      return true;
     }
 
     // check for project roles
@@ -381,6 +393,36 @@ export class Utils {
       }
 
       return path;
+  }
+
+  public static serviceUrl(path) {
+    let wnd:any = window;
+    if (wnd.getBaseServiceUrl) {
+      return wnd.getBaseServiceUrl(path);
+    }
+    return path;
+  }
+
+  public static isContainerDeveloper(securityContext) {
+    return securityContext && securityContext.indexOf(Roles.VRA_CONTAINER_DEVELOPER) > -1 &&
+                securityContext.indexOf(Roles.VRA_CONTAINER_ADMIN) == -1;
+  }
+
+  public static hasSystemRole(securityContext, roles) {
+    let securityContextRoles = FT.isApplicationEmbedded() ? securityContext : securityContext.roles;
+
+    if (!securityContextRoles || !roles) {
+      return false;
+    }
+
+    for (var i = 0; i < roles.length; i += 1) {
+      let role = roles[i];
+      if (securityContextRoles && securityContextRoles.indexOf(role) > -1) {
+          return true;
+      }
+    }
+
+    return false;
   }
 }
 

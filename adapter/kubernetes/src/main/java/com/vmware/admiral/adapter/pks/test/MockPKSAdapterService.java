@@ -11,6 +11,13 @@
 
 package com.vmware.admiral.adapter.pks.test;
 
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_CLUSTER_NAME_PROP_NAME;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_LAST_ACTION_CREATE;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_LAST_ACTION_DELETE;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_LAST_ACTION_STATE_FAILED;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_LAST_ACTION_STATE_IN_PROGRESS;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_LAST_ACTION_STATE_SUCCEEDED;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_LAST_ACTION_UPDATE;
 import static com.vmware.admiral.adapter.pks.entities.PKSCluster.PARAMETER_MASTER_HOST;
 import static com.vmware.admiral.adapter.pks.entities.PKSCluster.PARAMETER_MASTER_PORT;
 
@@ -19,11 +26,13 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import com.vmware.admiral.adapter.common.AdapterRequest;
+import com.vmware.admiral.adapter.pks.PKSException;
 import com.vmware.admiral.adapter.pks.PKSOperationType;
-import com.vmware.admiral.adapter.pks.entities.KubeConfig;
-import com.vmware.admiral.adapter.pks.entities.KubeConfig.Token;
 import com.vmware.admiral.adapter.pks.entities.PKSCluster;
+import com.vmware.admiral.adapter.pks.entities.PKSPlan;
+import com.vmware.admiral.adapter.pks.util.PKSClusterMapper;
 import com.vmware.admiral.common.ManagementUriParts;
+import com.vmware.admiral.compute.kubernetes.entities.config.KubeConfig;
 import com.vmware.xenon.common.Operation;
 import com.vmware.xenon.common.StatelessService;
 
@@ -33,6 +42,17 @@ public class MockPKSAdapterService extends StatelessService {
 
     public static final String CLUSTER1_UUID = UUID.randomUUID().toString();
     public static final String CLUSTER2_UUID = UUID.randomUUID().toString();
+
+    private static String lastActionState;
+    private static int counter = 0;
+
+    public static void resetCounter() {
+        counter = 0;
+    }
+
+    public static void setLastActionState(String lastActionState) {
+        MockPKSAdapterService.lastActionState = lastActionState;
+    }
 
     @Override
     public void handleRequest(Operation op) {
@@ -45,10 +65,14 @@ public class MockPKSAdapterService extends StatelessService {
         request.validate();
 
         if (PKSOperationType.CREATE_USER.id.equals(request.operationTypeId)) {
-            KubeConfig.AuthInfo result = new KubeConfig.AuthInfo();
-            result.name = "user";
-            result.user = new Token();
-            result.user.token = "token";
+            KubeConfig.UserEntry userEntry = new KubeConfig.UserEntry();
+            userEntry.name = "user";
+            userEntry.user = new KubeConfig.AuthInfo();
+            userEntry.user.token = "token";
+            KubeConfig result = new KubeConfig();
+            result.users = Arrays.asList(userEntry);
+            result.clusters = Arrays.asList(new KubeConfig.ClusterEntry());
+            result.clusters.get(0).name = "cluster-name";
             op.setBodyNoCloning(result).complete();
             return;
         }
@@ -74,6 +98,105 @@ public class MockPKSAdapterService extends StatelessService {
             return;
         }
 
+        if (PKSOperationType.DELETE_CLUSTER.id.equals(request.operationTypeId)) {
+            op.complete();
+            return;
+        }
+
+        if (PKSOperationType.GET_CLUSTER.id.equals(request.operationTypeId)) {
+            String clusterName = request.customProperties.get(PKS_CLUSTER_NAME_PROP_NAME);
+            if (clusterName.equals("unit-test-create-success")) {
+                PKSCluster c = constructPKSCluster("unit-test-create-success",
+                        PKS_LAST_ACTION_CREATE, PKS_LAST_ACTION_STATE_IN_PROGRESS);
+
+                if (counter++ >= 1) {
+                    c.lastActionState = PKS_LAST_ACTION_STATE_SUCCEEDED;
+                }
+
+                if (PKS_LAST_ACTION_DELETE.equals(lastActionState)) {
+                    if (counter >= 2) {
+                        PKSException pe = new PKSException("not found", new Exception(),
+                                Operation.STATUS_CODE_NOT_FOUND);
+                        op.fail(Operation.STATUS_CODE_NOT_FOUND, new Exception(pe), null);
+                        return;
+                    }
+                    c.lastAction = PKS_LAST_ACTION_DELETE;
+                } else if (PKS_LAST_ACTION_UPDATE.equals(lastActionState)) {
+                    c.lastAction = PKS_LAST_ACTION_UPDATE;
+                }
+
+                op.setBodyNoCloning(c).complete();
+            } else if (clusterName.equals("unit-test-delete-failed")) {
+                PKSCluster c = constructPKSCluster("unit-test-delete-failed",
+                        PKS_LAST_ACTION_DELETE, PKS_LAST_ACTION_STATE_IN_PROGRESS);
+                if (counter++ >= 1) {
+                    c.lastActionState = PKS_LAST_ACTION_STATE_FAILED;
+                }
+                op.setBodyNoCloning(c).complete();
+            } else if (clusterName.equals("unit-test-delete-success")) {
+                if (counter++ >= 1) {
+                    op.fail(Operation.STATUS_CODE_NOT_FOUND);
+                    return;
+                }
+                PKSCluster c = constructPKSCluster("unit-test-delete-success",
+                        PKS_LAST_ACTION_DELETE, PKS_LAST_ACTION_STATE_IN_PROGRESS);
+                op.setBodyNoCloning(c);
+                op.complete();
+            } else {
+                op.fail(Operation.STATUS_CODE_NOT_FOUND);
+            }
+
+            return;
+        }
+
+        if (PKSOperationType.CREATE_CLUSTER.id.equals(request.operationTypeId)) {
+            PKSCluster cluster = PKSClusterMapper.fromMap(request.customProperties);
+            cluster.lastAction = PKS_LAST_ACTION_CREATE;
+            cluster.lastActionState = PKS_LAST_ACTION_STATE_IN_PROGRESS;
+            cluster.uuid = "-";
+            op.setBodyNoCloning(cluster).complete();
+            return;
+        }
+
+        if (PKSOperationType.LIST_PLANS.id.equals(request.operationTypeId)) {
+            PKSPlan plan1 = new PKSPlan();
+            plan1.id = "1";
+            plan1.name = "tiny";
+            plan1.description = "small plan";
+
+            PKSPlan plan2 = new PKSPlan();
+            plan2.id = "2";
+            plan2.name = "huge";
+            plan2.description = "big plan";
+
+            op.setBodyNoCloning(Arrays.asList(plan1, plan2)).complete();
+            return;
+        }
+
+        if (PKSOperationType.RESIZE_CLUSTER.id.equals(request.operationTypeId)) {
+            PKSCluster cluster = PKSClusterMapper.fromMap(request.customProperties);
+            cluster.lastAction = PKS_LAST_ACTION_UPDATE;
+            cluster.lastActionState = PKS_LAST_ACTION_STATE_SUCCEEDED;
+            cluster.uuid = "-";
+            op.setBodyNoCloning(cluster).complete();
+            return;
+        }
+
+
         op.fail(new IllegalArgumentException("operation not supported"));
     }
+
+    private PKSCluster constructPKSCluster(String name, String lastAction, String lastActionState) {
+        PKSCluster cluster = new PKSCluster();
+        cluster.name = name;
+        cluster.uuid = CLUSTER1_UUID;
+        cluster.planName = "small";
+        cluster.parameters = new HashMap<>();
+        cluster.parameters.put(PARAMETER_MASTER_HOST, "30.0.1.2");
+        cluster.parameters.put(PARAMETER_MASTER_PORT, "8443");
+        cluster.lastAction = lastAction;
+        cluster.lastActionState = lastActionState;
+        return  cluster;
+    }
+
 }

@@ -11,25 +11,33 @@
 
 package com.vmware.admiral.adapter.pks.service;
 
-import static com.vmware.admiral.adapter.pks.PKSConstants.CLUSTER_NAME_PROP_NAME;
+import static com.vmware.admiral.adapter.pks.PKSConstants.KUBE_CONFIG_PROP_NAME;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_CLUSTER_NAME_PROP_NAME;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_CLUSTER_PLAN_NAME_PROP_NAME;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_CLUSTER_UUID_PROP_NAME;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_ENDPOINT_PROP_NAME;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_MASTER_HOST_FIELD;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_MASTER_PORT_FIELD;
 import static com.vmware.admiral.common.util.OperationUtil.PROJECT_ADMIRAL_HEADER;
 import static com.vmware.admiral.compute.ComputeConstants.HOST_AUTH_CREDENTIALS_PROP_NAME;
 import static com.vmware.admiral.compute.ContainerHostService.CONTAINER_HOST_TYPE_PROP_NAME;
 import static com.vmware.admiral.compute.ContainerHostService.HOST_DOCKER_ADAPTER_TYPE_PROP_NAME;
-import static com.vmware.admiral.compute.ContainerHostService.PKS_CLUSTER_PLAN_NAME_PROP_NAME;
-import static com.vmware.admiral.compute.ContainerHostService.PKS_CLUSTER_UUID_PROP_NAME;
-import static com.vmware.admiral.compute.ContainerHostService.PKS_ENDPOINT_PROP_NAME;
 import static com.vmware.admiral.compute.cluster.ClusterService.CLUSTER_NAME_CUSTOM_PROP;
+import static com.vmware.admiral.compute.cluster.ClusterService.HOSTS_URI_PATH_SEGMENT;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import com.vmware.admiral.adapter.common.AdapterRequest;
+import com.vmware.admiral.adapter.pks.PKSConstants;
 import com.vmware.admiral.adapter.pks.PKSOperationType;
-import com.vmware.admiral.adapter.pks.entities.KubeConfig;
 import com.vmware.admiral.adapter.pks.entities.PKSCluster;
+import com.vmware.admiral.common.DeploymentProfileConfig;
 import com.vmware.admiral.common.ManagementUriParts;
 import com.vmware.admiral.common.util.AssertUtil;
 import com.vmware.admiral.common.util.AuthUtils;
@@ -37,6 +45,8 @@ import com.vmware.admiral.compute.ContainerHostService;
 import com.vmware.admiral.compute.ContainerHostService.ContainerHostSpec;
 import com.vmware.admiral.compute.ContainerHostService.ContainerHostType;
 import com.vmware.admiral.compute.cluster.ClusterService;
+import com.vmware.admiral.compute.content.kubernetes.KubernetesUtil;
+import com.vmware.admiral.compute.kubernetes.entities.config.KubeConfig;
 import com.vmware.admiral.service.common.MultiTenantDocument;
 import com.vmware.admiral.service.common.ServiceTaskCallback;
 import com.vmware.photon.controller.model.resources.ComputeService.ComputeState;
@@ -56,9 +66,7 @@ public class PKSClusterConfigService extends StatelessService {
         public static final String FIELD_NAME_ENDPOINT_LINK = "endpointLink";
         public static final String FIELD_NAME_CLUSTER = "cluster";
 
-        public static final String KUBERNETES_MASTER_HOST_PROP_NAME = "kubernetes_master_host";
-        public static final String KUBERNETES_MASTER_PORT_PROP_NAME = "kubernetes_master_port";
-
+        public String existingClusterLink;
         public String endpointLink;
         public PKSCluster cluster;
 
@@ -77,12 +85,12 @@ public class PKSClusterConfigService extends StatelessService {
                 return null;
             }
 
-            String hostname = (String) cluster.parameters.get(KUBERNETES_MASTER_HOST_PROP_NAME);
+            String hostname = (String) cluster.parameters.get(PKS_MASTER_HOST_FIELD);
             if (hostname == null) {
                 return null;
             }
 
-            String port = (String) cluster.parameters.get(KUBERNETES_MASTER_PORT_PROP_NAME);
+            String port = (String) cluster.parameters.get(PKS_MASTER_PORT_FIELD);
 
             return UriUtils.buildUri("https", hostname,
                     port != null ? Integer.parseInt(port) : -1, null, null).toString();
@@ -120,7 +128,7 @@ public class PKSClusterConfigService extends StatelessService {
         adapterRequest.resourceReference = UriUtils.buildUri(getHost(),
                 clusterRequest.endpointLink);
         adapterRequest.customProperties = new HashMap<>();
-        adapterRequest.customProperties.put(CLUSTER_NAME_PROP_NAME, clusterRequest.cluster.name);
+        adapterRequest.customProperties.put(PKS_CLUSTER_NAME_PROP_NAME, clusterRequest.cluster.name);
 
         sendRequest(Operation.createPatch(getHost(), ManagementUriParts.ADAPTER_PKS)
                 .setBodyNoCloning(adapterRequest)
@@ -130,13 +138,14 @@ public class PKSClusterConfigService extends StatelessService {
                                 Utils.toString(ex));
                         op.fail(ex);
                     } else {
-                        KubeConfig.AuthInfo authInfo = o.getBody(KubeConfig.AuthInfo.class);
-                        if (authInfo.user == null || authInfo.user.token == null) {
+                        KubeConfig kubeConfig = o.getBody(KubeConfig.class);
+                        String token = KubernetesUtil.extractTokenFromKubeConfig(kubeConfig);
+                        if (token == null) {
                             op.fail(new IllegalStateException("Missing token"));
                             return;
                         }
 
-                        createCredentials(op, authInfo.user.token, clusterRequest.tenantLinks,
+                        createCredentialsIfNotExist(op, token, kubeConfig, clusterRequest,
                                 (credentialsLink) -> {
                                     addCluster(op, clusterRequest, credentialsLink);
                                 });
@@ -148,12 +157,14 @@ public class PKSClusterConfigService extends StatelessService {
             String credentialsLink) {
 
         ContainerHostSpec clusterSpec = createHostSpec(clusterRequest, credentialsLink);
-
-        Operation.createPost(getHost(), ClusterService.SELF_LINK)
+        String link = (clusterRequest.existingClusterLink != null)
+                ? UriUtils.buildUriPath(clusterRequest.existingClusterLink, HOSTS_URI_PATH_SEGMENT)
+                : ClusterService.SELF_LINK;
+        Operation.createPost(getHost(), link)
                 .setBody(clusterSpec)
                 .setCompletion((o, e) -> {
                     if (e != null) {
-                        logWarning("Error creating cluster state: %s", Utils.toString(e));
+                        logWarning("Error creating/updating cluster state: %s", e.getMessage());
                         op.fail(e);
                         return;
                     }
@@ -175,6 +186,8 @@ public class PKSClusterConfigService extends StatelessService {
                 ContainerHostService.DockerAdapterType.API.name());
         kubernetesHost.customProperties.put(CLUSTER_NAME_CUSTOM_PROP,
                 clusterRequest.cluster.name);
+        kubernetesHost.customProperties.put(PKSConstants.PKS_CLUSTER_NAME_PROP_NAME,
+                clusterRequest.cluster.name);
         kubernetesHost.customProperties.put(HOST_AUTH_CREDENTIALS_PROP_NAME,
                 credentialsLink);
         kubernetesHost.customProperties.put(PKS_ENDPOINT_PROP_NAME,
@@ -187,27 +200,62 @@ public class PKSClusterConfigService extends StatelessService {
         ContainerHostSpec clusterSpec = new ContainerHostSpec();
         clusterSpec.hostState = kubernetesHost;
         clusterSpec.acceptCertificate = true;
+        clusterSpec.acceptHostAddress =  DeploymentProfileConfig.getInstance().isTest();
 
         return clusterSpec;
     }
 
-    private void createCredentials(Operation op, String token, List<String> tenantLinks,
-            Consumer<String> consumer) {
-        AuthCredentialsServiceState credentials = new AuthCredentialsServiceState();
-        credentials.privateKey = token;
-        credentials.type = AuthUtils.BEARER_TOKEN_AUTH_TYPE;
-        credentials.tenantLinks = tenantLinks;
+    private void createCredentialsIfNotExist(Operation op, String token, KubeConfig kubeConfig,
+            AddClusterRequest clusterRequest, Consumer<String> consumer) {
+        String credentialsLink = UriUtils.buildUriPath(AuthCredentialsService.FACTORY_LINK,
+                "pks-" + clusterRequest.cluster.uuid);
 
-        Operation.createPost(getHost(), AuthCredentialsService.FACTORY_LINK)
-                .setBody(credentials)
+        Operation.createGet(this, credentialsLink)
                 .setCompletion((o, e) -> {
+                    if (o.getStatusCode() == Operation.STATUS_CODE_NOT_FOUND) {
+                        createCredentials(op, credentialsLink, token, kubeConfig,
+                                clusterRequest.tenantLinks, consumer);
+                        return;
+                    }
                     if (e != null) {
-                        logWarning("Error creating PKS credentials state: %s", Utils.toString(e));
+                        logSevere("Error getting credentials %s, reason: %s", credentialsLink,
+                                e.getMessage());
                         op.fail(e);
                         return;
                     }
-                    consumer.accept(o.getBody(AuthCredentialsServiceState.class).documentSelfLink);
-                }).sendWith(this);
+                    consumer.accept(credentialsLink);
+                })
+                .sendWith(this);
+    }
+
+    private void createCredentials(Operation op, String link, String token, KubeConfig kubeConfig,
+            List<String> tenantLinks, Consumer<String> consumer) {
+        AuthCredentialsServiceState credentials = new AuthCredentialsServiceState();
+        credentials.documentSelfLink = link;
+        credentials.privateKey = token;
+        credentials.type = AuthUtils.BEARER_TOKEN_AUTH_TYPE;
+        credentials.tenantLinks = tenantLinks;
+        credentials.customProperties = new HashMap<>(4);
+        credentials.customProperties.put(KUBE_CONFIG_PROP_NAME, Utils.toJson(kubeConfig));
+
+        //Set the display name of the credential to the cluster name, if it exists
+        if (CollectionUtils.isNotEmpty(kubeConfig.clusters) &&
+                StringUtils.isNotEmpty(kubeConfig.clusters.get(0).name)) {
+            credentials.customProperties.put(AuthUtils.AUTH_CREDENTIALS_NAME_PROP_NAME,
+                    kubeConfig.clusters.get(0).name);
+        }
+
+        Operation.createPost(getHost(), AuthCredentialsService.FACTORY_LINK)
+                .setBodyNoCloning(credentials)
+                .setCompletion((o, e) -> {
+                    if (e != null) {
+                        logWarning("Error creating PKS credentials state: %s", e.getMessage());
+                        op.fail(e);
+                        return;
+                    }
+                    consumer.accept(link);
+                })
+                .sendWith(this);
     }
 
     private void setProjectLinkAsTenantLink(Operation op, AddClusterRequest request) {

@@ -200,6 +200,7 @@
         "publicTitle": "Openbare sleutel",
         "publicCertificateTitle": "Openbaar certificaat",
         "privateCertificateTitle": "Persoonlijk certificaat",
+        "bearerTokenTitle": "Bearer token",
         "customProperties": "Aangepaste eigenschappen"
       }
     },
@@ -261,6 +262,7 @@
         "title": "Populaire sjablonen",
         "titleSearch": "Sjablonen gevonden",
         "popularRepositories": "Populaire opslagplaatsen",
+        "repositoriesSearchWarning": "Geef term om te zoeken. De zoekopdracht kan niet doorgaan.",
         "searchImagesTemplatesPlaceholder": "Zoeken naar images, sjablonen",
         "searchImagesPlaceholder": "Zoeken naar images",
         "searchRepositoriesPlaceholder": "Zoeken naar opslagplaatsen",
@@ -290,7 +292,10 @@
           "closures": "Sluitingen",
           "repositories": "Opslagplaatsen"
         },
-        "createTemplate": "Sjabloon"
+        "createTemplate": "Sjabloon",
+        "addToFavorites": "Afbeelding toevoegen aan favorieten",
+        "removeFromFavorites": "Afbeelding verwijderen uit favorieten",
+        "addedImageToFavoritesMessage": "Afbeelding toegevoegd aan favorieten"
       },
       "details": {
         "create": "Sjabloon maken",

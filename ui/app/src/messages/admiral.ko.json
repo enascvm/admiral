@@ -200,6 +200,7 @@
         "publicTitle": "공용 키",
         "publicCertificateTitle": "공용 인증서",
         "privateCertificateTitle": "개인 인증서",
+        "bearerTokenTitle": "Bearer token",
         "customProperties": "사용자 지정 속성"
       }
     },
@@ -261,6 +262,7 @@
         "title": "인기 템플릿",
         "titleSearch": "찾은 템플릿",
         "popularRepositories": "인기 저장소",
+        "repositoriesSearchWarning": "검색 용어를 지정하십시오. 검색을 계속할 수 없습니다.",
         "searchImagesTemplatesPlaceholder": "이미지, 템플릿 검색",
         "searchImagesPlaceholder": "이미지 검색",
         "searchRepositoriesPlaceholder": "저장소 검색",
@@ -290,7 +292,10 @@
           "closures": "클로저",
           "repositories": "저장소"
         },
-        "createTemplate": "템플릿"
+        "createTemplate": "템플릿",
+        "addToFavorites": "이미지를 즐겨찾기에 추가",
+        "removeFromFavorites": "이미지를 즐겨찾기에서 제거",
+        "addedImageToFavoritesMessage": "이미지가 즐겨찾기에 추가됨"
       },
       "details": {
         "create": "템플릿 생성",

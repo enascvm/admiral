@@ -51,12 +51,12 @@
         <div class="dropdown">
           <button type="button" class="btn create-container-btn"
                   @click="provisionContainer($event)">{{i18n("app.template.list.provision")}}</button>
-          <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <button v-if="isAdditionalInfoAllowed" type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span class="caret"></span>
             <span class="sr-only">Toggle Dropdown</span>
           </button>
           <ul class="dropdown-menu">
-            <li><a href="#" class="create-container-additional-btn"
+            <li v-if="isAdditionalInfoAllowed"><a href="#" class="create-container-additional-btn"
                    @click="provisionContainerAdditionalInfo($event)"
                   >{{i18n("app.template.list.provisionAdditionalInfo")}}</a></li>
             <li v-if="addToFavoriteSupported"><a href="#" class="create-container-additional-btn"
@@ -65,7 +65,7 @@
             <li v-if="removeFromFavoriteSupported"><a href="#" class="create-container-additional-btn"
                    @click="removeImageFromFavorites($event)"
                   >{{i18n("app.template.list.removeFromFavorites")}}</a></li>
-            <li v-if="isPksEnabled"><a href="#" class="create-container-additional-btn"
+            <li v-if="isPksEnabled && !isContainerDeveloper"><a href="#" class="create-container-additional-btn"
                    @click="provisionKubernetesDeployment($event)"
                   >{{i18n("app.template.list.provisionKubernetesDeployment")}}</a></li>
           </ul>

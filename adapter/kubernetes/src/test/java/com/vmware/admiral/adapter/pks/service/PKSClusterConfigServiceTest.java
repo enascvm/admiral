@@ -14,13 +14,15 @@ package com.vmware.admiral.adapter.pks.service;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_CLUSTER_PLAN_NAME_PROP_NAME;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_CLUSTER_UUID_PROP_NAME;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_ENDPOINT_PROP_NAME;
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_MASTER_HOST_FIELD;
 import static com.vmware.admiral.common.util.OperationUtil.PROJECT_ADMIRAL_HEADER;
 import static com.vmware.admiral.compute.ComputeConstants.HOST_AUTH_CREDENTIALS_PROP_NAME;
-import static com.vmware.admiral.compute.ContainerHostService.PKS_CLUSTER_PLAN_NAME_PROP_NAME;
-import static com.vmware.admiral.compute.ContainerHostService.PKS_CLUSTER_UUID_PROP_NAME;
-import static com.vmware.admiral.compute.ContainerHostService.PKS_ENDPOINT_PROP_NAME;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -36,7 +38,7 @@ import com.vmware.admiral.compute.ContainerHostService;
 import com.vmware.admiral.compute.cluster.ClusterService;
 import com.vmware.admiral.compute.cluster.ClusterService.ClusterDto;
 import com.vmware.admiral.compute.container.ComputeBaseTest;
-import com.vmware.admiral.compute.pks.PKSEndpointService;
+import com.vmware.admiral.compute.pks.PKSEndpointFactoryService;
 import com.vmware.admiral.compute.pks.PKSEndpointService.Endpoint;
 import com.vmware.admiral.host.HostInitKubernetesAdapterServiceConfig;
 import com.vmware.admiral.service.test.MockKubernetesHostAdapterService;
@@ -44,6 +46,7 @@ import com.vmware.photon.controller.model.resources.ComputeService.ComputeState;
 import com.vmware.xenon.common.Operation;
 import com.vmware.xenon.common.UriUtils;
 import com.vmware.xenon.common.test.TestRequestSender;
+import com.vmware.xenon.common.test.TestRequestSender.FailureResponse;
 import com.vmware.xenon.services.common.AuthCredentialsService;
 
 public class PKSClusterConfigServiceTest extends ComputeBaseTest {
@@ -103,13 +106,46 @@ public class PKSClusterConfigServiceTest extends ComputeBaseTest {
         assertEquals(CLUSTER_UUID, pksHost.customProperties.get(PKS_CLUSTER_UUID_PROP_NAME));
     }
 
+    @Test
+    public void testAddPKSClusterFail() {
+        String endpointLink = createEndpoint().documentSelfLink;
+
+        AddClusterRequest request = new AddClusterRequest();
+        request.endpointLink = endpointLink;
+
+        Operation o = Operation
+                .createPost(host, PKSClusterConfigService.SELF_LINK)
+                .setBodyNoCloning(request);
+        FailureResponse failureResponse = sender.sendAndWaitFailure(o);
+
+        assertNotNull(failureResponse);
+        assertNotNull(failureResponse.failure);
+    }
+
+    @Test
+    public void testAddClusterRequestGetExternalAddress() {
+        AddClusterRequest request = new AddClusterRequest();
+        request.cluster = new PKSCluster();
+
+        String s = request.getExternalAddress();
+        assertNull(s);
+
+        request.cluster.parameters = new HashMap<>();
+        s = request.getExternalAddress();
+        assertNull(s);
+
+        request.cluster.parameters.put(PKS_MASTER_HOST_FIELD, "host");
+        s = request.getExternalAddress();
+        assertNotNull(s);
+    }
+
     private Endpoint createEndpoint() {
         Endpoint endpoint = new Endpoint();
         endpoint.apiEndpoint = "http://localhost";
         endpoint.uaaEndpoint = "https://localhost";
 
         Operation o = Operation
-                .createPost(host, PKSEndpointService.FACTORY_LINK)
+                .createPost(host, PKSEndpointFactoryService.SELF_LINK)
                 .setBodyNoCloning(endpoint);
         Endpoint result = sender.sendAndWait(o, Endpoint.class);
 
@@ -127,4 +163,5 @@ public class PKSClusterConfigServiceTest extends ComputeBaseTest {
 
         return cluster;
     }
+
 }

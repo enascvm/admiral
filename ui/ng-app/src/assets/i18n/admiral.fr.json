@@ -133,7 +133,7 @@
           "fieldCredentials": "Informations d'identification de connexion"
         },
         "count": "registres",
-        "insecureRegistryHint": "Registre HTTP simple détecté. La connexion au registre n'est pas sécurisée. Vérifiez que les hôtes sont correctement configurés et que vous pouvez vous y connecter. <a target=\"_blank\" href=\"https://docs.docker.com/registry/insecure/#/deploying-a-plain-http-registry\">Plus d'informations</a>"
+        "insecureRegistryHint": "Registre HTTP ordinaire détecté. La connexion au registre n'est pas sécurisée. Vérifiez que les hôtes sont correctement configurés et que vous pouvez vous y connecter. <a target=\"_blank\" href=\"https://docs.docker.com/registry/insecure/#/deploying-a-plain-http-registry\">Plus d'informations</a>"
     },
     "config": {
       "title": "Configuration",
@@ -189,7 +189,13 @@
       "ON": "ACTIVÉ",
       "OFF": "DÉSACTIVÉ",
       "DISABLED": "DÉSACTIVÉ",
-      "WARNING": "AVERTISSEMENT"
+      "WARNING": "AVERTISSEMENT",
+      "PROVISIONING": "PROVISIONNEMENT",
+      "RESIZING": "REDIMENSIONNEMENT",
+      "REMOVING": "SUPPRESSION"
+    },
+    "search": {
+      "placeholder": "Rechercher des clusters"
     },
     "search": {
       "placeholder": "Rechercher des clusters"
@@ -261,6 +267,165 @@
       "titleVic": "Supprimer l'hôte de conteneur",
       "confirmation": "Confirmez la suppression du cluster {{clusterName}}. Les entités déployées associées à ce cluster seront également supprimées. Cette opération ne peut pas être annulée.",
       "confirmationVic": "Confirmez la suppression de l'hôte de conteneur {{clusterName}}. Les entités déployées associées à cet hôte de conteneur seront également supprimées. Cette opération ne peut pas être annulée."
+    },
+    "backLinkTextProject": "Projet"
+  },
+  "kubernetes": {
+    "clusters": {
+      "title": "Clusters PKS",
+      "addBtn": "Ajouter un cluster",
+      "newBtn": "Nouveau cluster",
+      "nodeCount": "Nœuds",
+      "dashboard": "Tableau de bord",
+      "edit": {
+        "name": "Nom",
+        "nameRequired": "Un nom est requis.",
+        "description": "Description",
+        "url": "URL",
+        "urlRequired": "L'URL du cluster est requise.",
+        "credentials": "Informations d'identification"
+      },
+      "search": {
+        "placeholder": "Rechercher des clusters"
+      },
+      "add": {
+        "existing": "Cluster PKS existant",
+        "external": "Cluster externe"
+      },
+      "details": {
+        "summary": {
+          "kubeConfigBtn": "KubeConfig",
+          "kubeConfigTooltip": "Téléchargez un fichier de configuration de l'outil de ligne de commande kubectl afin d'accéder à ce cluster.",
+          "title": "Résumé",
+          "nodeCount": "Nœuds :",
+          "dashboard": "Tableau de bord :",
+          "planName": "Plan :",
+          "dashboardInstalled": "INSTALLÉ",
+          "dashboardNotInstalled": "NON INSTALLÉ",
+          "totalMemory": "Mémoire totale :"
+        },
+        "nodes": {
+          "title": "Nœuds",
+          "searchPlaceholder": "Rechercher des nœuds",
+          "nameColumn": "Nom",
+          "cpuCountColumn": "Nombre de CPU",
+          "totalMemoryColumn": "Mémoire totale",
+          "powerState": {
+            "ON": "Activé",
+            "OFF": "Désactivé"
+          },
+          "count": "Nœuds"
+        }
+      },
+      "remove": {
+        "title": "Supprimer le cluster",
+        "confirmation": "Confirmez la suppression du cluster {{clusterName}}. Les entités déployées associées à ce cluster seront également supprimées."
+      },
+      "destroy": {
+        "title": "Détruire le cluster",
+        "confirmation": "Confirmez la destruction du cluster {{clusterName}}. Les entités déployées associées à ce cluster seront également supprimées. Cette opération ne peut pas être annulée."
+      }
+    },
+    "deployments": {
+      "title": "Déploiements",
+      "search": {
+        "placeholder": "Rechercher des déploiements"
+      },
+      "item": {
+        "creation": "Créé le :",
+        "namespace": "Espace de noms :",
+        "containersNumber": "Conteneurs :",
+        "restartPolicy": "Stratégie de redémarrage :",
+        "strategy": "Stratégie :",
+        "replicas": "Réplicas :",
+        "terminationGracePeriodSeconds": "Période de grâce d'arrêt (secondes) :",
+        "dnsPolicy": "Stratégie DNS :",
+        "summaryTitle": "Résumé",
+        "containersTitle": "Conteneurs",
+        "containers": {
+          "name": "Nom",
+          "image": "Image",
+          "env": "Env."
+        }
+      }
+    },
+    "pods": {
+        "title": "Espaces",
+        "search": {
+            "placeholder": "Rechercher des espaces"
+        },
+        "item": {
+            "creation": "Créé le :",
+            "namespace": "Espace de noms :",
+            "containersNumber": "Conteneurs :",
+            "status": "Statut :",
+            "startTime": "Démarré :",
+            "ip": "Adresse IP :",
+            "summaryTitle": "Résumé",
+            "containerStatuses": {
+              "title": "Conteneurs",
+              "name": "Nom du conteneur",
+              "state": "Statut"
+            },
+            "volumes": {
+              "title": "Volumes",
+              "name": "Nom du volume",
+              "hostPath": "Chemin d'accès sur l'hôte"
+            },
+            "logsTitle": "Journaux"
+        }
+    },
+    "services": {
+      "title": "Services",
+      "search": {
+        "placeholder": "Rechercher des services"
+      },
+      "item": {
+        "summaryTitle": "Résumé",
+        "creation": "Créé le :",
+        "namespace": "Espace de noms :",
+        "ports": "Ports :"
+      }
+    }
+  },
+  "pks": {
+    "new": {
+      "title": "Nouveau cluster",
+      "settings": {
+        "title": "Paramètres",
+        "fieldTitleEndpoint": "Point de terminaison PKS",
+        "fieldTitleName": "Nom du cluster",
+        "nameFieldRequired": "Le nom du cluster est requis.",
+        "fieldTitlePlan": " Plan",
+        "fieldTitleMasterHostName": "Nom d'hôte maître",
+        "fieldTitleMasterHostPort": "Port de l'hôte maître",
+        "fieldTitleNumberNodes": "Nœuds de travailleur",
+        "workerFieldRequired": "Le champ Travailleur est obligatoire. Vous pouvez uniquement entrer des nombres entiers supérieurs à 0."
+      }
+    },
+    "edit": {
+      "title": "Modifier le cluster"
+    },
+    "add": {
+      "title": "Ajouter un cluster",
+      "existingClusters": {
+        "descriptionText": "Select an endpoint and then select one existing, unassigned Kubernetes cluster to add to the current business group.",
+        "fieldTitleEndpoint": "Point de terminaison :",
+        "columnTitleName": "Nom",
+        "columnTitleHostname": "Nom d'hôte",
+        "columnTitleMastersCount": "Nombre de maîtres",
+        "columnTitleWorkersCount": "Nombre de travailleurs",
+        "columnTitlePlan": " Plan",
+        "columnTitleLastAction": "Action",
+        "columnTitleLastActionStatus": "Status",
+        "columnTitleInAdmiral": "Enregistré",
+        "multipleSelectedClustersWarning": "Cannot add more than one cluster at a time.",
+        "clusterAlreadyRegisteredWarning": "Cannot add selected cluster. It is already added.",
+        "operationInProgressWarning": "Cannot add selected cluster. There is an operation in progress.",
+        "yes": "Oui",
+        "no": "Non",
+        "count": "Clusters"
+      }
     }
   },
   "kubernetes": {
@@ -385,9 +550,12 @@
       "credentials": "Informations d'identification",
       "pksAddressFieldTitle": "Adresse PKS",
       "pksAddressRequired": "L'adresse PKS est requise.",
-      "createBtn": "Créer",
       "testConnectionBtn": "Tester la connexion",
-      "clustersTabTitle": "Clusters"
+      "clustersTabTitle": "Clusters",
+      "connectionVerified": "La connexion au point de terminaison a été établie.",
+      "certificateNotAccepted": "Impossible de continuer, car le certificat n'est pas accepté.",
+      "assignToProjects": "Attribuer à des projets",
+      "assignToGroups": "Attribuer à des groupes"
     }
   },
   "configuration": {
@@ -416,10 +584,13 @@
   },
   "edit": "Modifier",
   "save": "Enregistrer",
+  "create": "Créer",
   "add": "Ajouter",
   "yes": "Oui",
   "remove": "Supprimer",
   "delete": "Supprimer",
+  "destroy": "Détruire",
+  "details": "Détails",
   "verify": "Vérifier",
   "update": "Mettre à jour",
   "cancel": "Annuler",
@@ -432,6 +603,7 @@
   "noItems": "Aucun élément",
   "reload": "Recharger",
   "notAvailable": "S/O",
+  "selectAll": "Tout sélectionner",
   "sessionExpired": "Votre session n'est plus valide. Veuillez vous reconnecter.",
   "navigation": {
     "home": "Accueil",
@@ -442,9 +614,15 @@
     "networks": "Réseaux",
     "volumes": "Volumes",
     "closures": "Fermetures",
+    "kubernetes": {
+      "title": "Kubernetes",
+      "deployments": "Déploiements",
+      "pods": "Espaces",
+      "services": "Services"
+    },
     "library": "Bibliothèque",
     "templates": "Modèles",
-    "repositories": "Référentiels",
+    "repositories": "Tous les référentiels",
     "internalRepositories": "Référentiels intégrés",
     "publicRepositories": "Référentiels",
     "infrastructure": "Infrastructure",

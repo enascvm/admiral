@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2016 VMware, Inc. All Rights Reserved.
+  ~ Copyright (c) 2016-2018 VMware, Inc. All Rights Reserved.
   ~
   ~ This product is licensed to you under the Apache License, Version 2.0 (the "License").
   ~ You may not use this product except in compliance with the License.
@@ -17,7 +17,7 @@
 
     <groupId>com.vmware.admiral</groupId>
     <artifactId>admiral</artifactId>
-    <version>1.4.1-SNAPSHOT</version>
+    <version>1.4.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <url>https://github.com/vmware/admiral</url>
@@ -35,10 +35,12 @@
 
     <modules>
         <module>common-test</module>
+        <module>photon</module>
         <module>common</module>
         <module>auth</module>
         <module>compute</module>
         <module>request</module>
+        <module>tiller</module>
         <module>closures</module>
         <module>ui</module>
         <module>host</module>
@@ -72,14 +74,11 @@
         <m2e.lifecycle-mapping>1.0.0</m2e.lifecycle-mapping>
 
         <!-- xenon -->
-        <xenon.version>1.5.4_8</xenon.version>
+        <xenon.version>1.5.4_9-SNAPSHOT</xenon.version>
         <xenon.common.version>${xenon.version}</xenon.common.version>
         <xenon.ui.version>${xenon.version}</xenon.ui.version>
         <xenon.swagger.version>0.0.7</xenon.swagger.version>
         <xenon.group>com.vmware.xenon</xenon.group>
-
-        <!-- Photon Model -->
-        <photon.model.version>0.6.31</photon.model.version>
 
         <!-- other -->
         <bouncycastle.version>1.57</bouncycastle.version>
@@ -98,7 +97,7 @@
 
         <!-- TEST -->
         <junit.version>4.12</junit.version>
-        <mockito.version>2.0.36-beta</mockito.version>
+        <mockito.version>2.19.0</mockito.version>
         <jacoco.version>0.7.5.201505241946</jacoco.version>
 
         <!-- Jacoco -->
@@ -160,32 +159,6 @@
                 <groupId>${xenon.group}</groupId>
                 <artifactId>xenon-swagger-adapter</artifactId>
                 <version>${xenon.swagger.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.vmware.photon.controller</groupId>
-                <artifactId>photon-model</artifactId>
-                <version>${photon.model.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.vmware.photon.controller</groupId>
-                <artifactId>photon-model-security</artifactId>
-                <version>${photon.model.version}</version>
-            </dependency>
-           <dependency>
-                <groupId>com.vmware.photon.controller</groupId>
-                <artifactId>photon-model-tasks</artifactId>
-                <version>${photon.model.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.vmware.photon.controller</groupId>
-                <artifactId>photon-adapter-util</artifactId>
-                <version>${photon.model.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.vmware.photon.controller</groupId>
-                <artifactId>photon-model-adapters-registry</artifactId>
-                <version>${photon.model.version}</version>
             </dependency>
 
             <dependency>

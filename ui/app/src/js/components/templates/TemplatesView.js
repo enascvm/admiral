@@ -28,15 +28,13 @@ import GridHolderMixin from 'components/common/GridHolderMixin';
 import constants from 'core/constants';
 import utils from 'core/utils';
 import ft from 'core/ft';
-import {
-  NavigationActions,
-  RequestsActions,
-  NotificationsActions,
-  TemplateActions,
-  TemplatesContextToolbarActions,
-  HostContextToolbarActions
-} from 'actions/Actions';
 
+import { NavigationActions, RequestsActions, NotificationsActions, TemplateActions,
+         TemplatesContextToolbarActions, HostContextToolbarActions } from 'actions/Actions';
+
+/**
+ * Templates, Repositories view.
+ */
 var TemplatesViewVueComponent = Vue.extend({
   template: TemplatesViewVue,
   props: {
@@ -64,7 +62,8 @@ var TemplatesViewVueComponent = Vue.extend({
       alert: alertData,
       createTemplateName: null,
       showTemplateExport: false,
-      exportTemplateDocumentId: null
+      exportTemplateDocumentId: null,
+      selectedRegistryOption: null
     };
   },
   computed: {
@@ -81,14 +80,11 @@ var TemplatesViewVueComponent = Vue.extend({
     queryOptions: function() {
       return this.model.listView && this.model.listView.queryOptions;
     },
+    isRepositoriesView: function() {
+      return this.selectedCategory === constants.TEMPLATES.SEARCH_CATEGORY.IMAGES;
+    },
     searchTag: function() {
-      let searchTag;
-      if (this.selectedCategory === constants.TEMPLATES.SEARCH_CATEGORY.IMAGES
-            && this.model.listView.availableRepositories) {
-        searchTag = 'registry';
-      }
-
-      return searchTag;
+      return this.isRepositoriesView && 'registry';
     },
     searchTagOptions: function() {
       var searchTagOptions;
@@ -104,8 +100,7 @@ var TemplatesViewVueComponent = Vue.extend({
     selectedCategory: function() {
       var queryOpts = this.queryOptions || {};
 
-      return queryOpts[constants.SEARCH_CATEGORY_PARAM]
-                || constants.CONTAINERS.SEARCH_CATEGORY.ALL;
+      return queryOpts[constants.SEARCH_CATEGORY_PARAM] || constants.CONTAINERS.SEARCH_CATEGORY.ALL;
     },
     requestsCount: function() {
       var contextView = this.model.contextView;
@@ -193,8 +188,7 @@ var TemplatesViewVueComponent = Vue.extend({
       });
     });
 
-    this.unwatchIsPartialResult = this.$watch('isPartialResult',
-                                              (isPartialResult) => {
+    this.unwatchIsPartialResult = this.$watch('isPartialResult', (isPartialResult) => {
       if (isPartialResult) {
         var errorMessage = i18n.t('app.template.list.partialResultWarning');
         this.$dispatch('container-form-alert', errorMessage, constants.ALERTS.TYPE.WARNING);
@@ -202,6 +196,12 @@ var TemplatesViewVueComponent = Vue.extend({
         this.$dispatch('container-form-alert', null);
       }
     });
+
+    this.unwatchIsRepositoriesView = this.$watch('isRepositoriesView', (isRepositoriesView) => {
+      if (!isRepositoriesView) {
+        this.selectedRegistryOption = undefined;
+      }
+    }, { immediate: true });
 
     this.refreshRequestsInterval = setInterval(() => {
       if (this.activeContextItem === constants.CONTEXT_PANEL.REQUESTS) {
@@ -218,6 +218,7 @@ var TemplatesViewVueComponent = Vue.extend({
   detached: function() {
     this.unwatchExpanded();
     this.unwatchIsPartialResult();
+    this.unwatchIsRepositoriesView();
 
     var $mainPanel = $(this.$el).children('.list-holder').children('.main-panel');
     $mainPanel.off('transitionend MSTransitionEnd webkitTransitionEnd oTransitionEnd');
@@ -250,19 +251,28 @@ var TemplatesViewVueComponent = Vue.extend({
           return globalRepositories ? globalRepositories.includes(this.model.registry) : false;
         },
         isFavorite: function() {
-          var favoriteImages = this.parentListView.favoriteImages;
-          return this.model.isFavorite || favoriteImages.includes(this.model.documentId);
+          let favoriteImages = this.parentListView.favoriteImages;
+          return ft.areFavoriteImagesEnabled() && this.model.isFavorite
+                    || favoriteImages && favoriteImages.includes(this.model.documentId);
         },
         addToFavoriteSupported: function() {
-          return ft.areFavoriteImagesEnabled() && utils.isAccessAllowed(['CLOUD_ADMIN']) &&
+          return ft.areFavoriteImagesEnabled() &&
+              utils.actionAllowed(window.routesRestrictions.FAVORITE_IMAGES) &&
               this.isRegistryGlobal && !this.isFavorite;
         },
         removeFromFavoriteSupported: function() {
-          return ft.areFavoriteImagesEnabled() && utils.isAccessAllowed(['CLOUD_ADMIN']) &&
+          return ft.areFavoriteImagesEnabled() &&
+              utils.actionAllowed(window.routesRestrictions.FAVORITE_IMAGES) &&
               this.model.isFavorite;
         },
         isPksEnabled: function() {
           return ft.isPksEnabled();
+        },
+        isContainerDeveloper: function() {
+          return utils.isContainerDeveloper();
+        },
+        isAdditionalInfoAllowed: function() {
+          return utils.actionAllowed(window.routesRestrictions.PROVISIONING_ADDITIONAL_INFO_BUTTON);
         }
       },
       methods: {
@@ -270,7 +280,12 @@ var TemplatesViewVueComponent = Vue.extend({
           $event.stopPropagation();
           $event.preventDefault();
 
-          TemplateActions.createContainer(this.model.type, this.model.documentId);
+          if (!this.isContainerDeveloper) {
+            TemplateActions.createContainer(this.model.type, this.model.documentId);
+          } else if (this.isPksEnabled && this.isContainerDeveloper) {
+            NavigationActions.openKubernetesDeploymentRequest(this.model.type,
+              this.model.documentId);
+          }
         },
         provisionContainerAdditionalInfo: function($event) {
           $event.stopPropagation();
@@ -435,6 +450,14 @@ var TemplatesViewVueComponent = Vue.extend({
       return utils.isApplicationEmbedded();
     },
 
+    isDeploymentPoliciesAllowed: function() {
+      return utils.actionAllowed(window.routesRestrictions.DEPLOYMENT_POLICIES);
+    },
+
+    isTemplatesActionsAllowed: function() {
+      return utils.actionAllowed(window.routesRestrictions.TEMPLATES_NEW_IMPORT);
+    },
+
     backToApplications: function() {
         var queryOpts = {
           $category: constants.CONTAINERS.SEARCH_CATEGORY.APPLICATIONS
@@ -466,7 +489,7 @@ var TemplatesViewVueComponent = Vue.extend({
       if (this.model.selectedItemDetails
           && this.model.selectedItemDetails.origin === 'applications') {
         return this.backToApplications();
-      } else if (this.model.selectedItemDetails) {
+      } else if (this.model.selectedItemDetails.origin) {
         return this.backToTemplate();
       }
 
@@ -477,33 +500,38 @@ var TemplatesViewVueComponent = Vue.extend({
       }
     },
 
-    search: function(queryOptions) {
-      this.doSearchAndFilter(queryOptions, this.selectedCategory);
-    },
-
     changeSearchTagSelection: function($eventData) {
-      var qo = $.extend({}, this.queryOptions);
+      this.selectedRegistryOption = $eventData;
 
-      if ($eventData) {
-        qo[$eventData.name] = $eventData.value;
-      } else if (!$eventData) {
-        delete qo[this.searchTag];
+      this.search(this.queryOptions);
+    },
+
+    search: function(queryOptions) {
+      this.alertClosed();
+
+      let searchTerm = queryOptions.any;
+
+      if (this.selectedRegistryOption && !searchTerm) {
+        // show warning - the search logic needs a search term
+        this.showAlertMessage(constants.ALERTS.TYPE.WARNING,
+                                i18n.t('app.template.list.repositoriesSearchWarning'));
+      } else {
+        // perform the search
+        var queryOptionsToSend = $.extend({}, queryOptions);
+        queryOptionsToSend[constants.SEARCH_CATEGORY_PARAM] = this.selectedCategory;
+        // tag
+        if (this.selectedRegistryOption) {
+          queryOptionsToSend[this.searchTag] = this.selectedRegistryOption.value;
+        } else {
+          delete queryOptionsToSend[this.searchTag];
+        }
+
+        if (utils.equals(queryOptionsToSend, this.queryOptions)) {
+          return;
+        }
+
+        NavigationActions.openTemplates(queryOptionsToSend);
       }
-
-      this.search(qo);
-    },
-
-    selectCategory(categoryName, $event) {
-      this.doSearchAndFilter(this.queryOptions, categoryName);
-      $event.stopPropagation();
-      $event.preventDefault();
-    },
-
-    doSearchAndFilter: function(queryOptions, categoryName) {
-      var queryOptionsToSend = $.extend({}, queryOptions);
-      queryOptionsToSend[constants.SEARCH_CATEGORY_PARAM] = categoryName;
-
-      NavigationActions.openTemplates(queryOptionsToSend);
     },
 
     refresh: function() {
@@ -549,15 +577,20 @@ var TemplatesViewVueComponent = Vue.extend({
       return alert && alert.type;
     },
 
-    showErrorAlert: function(alertMessage) {
-      this.alert.show = true;
+    showAlertMessage: function(alertType, alertMessage) {
       this.alert.message = alertMessage;
-      this.alert.type = constants.ALERTS.TYPE.FAIL;
+      this.alert.type = alertType;
+      this.alert.show = true;
+    },
+
+    showErrorAlert: function(alertMessage) {
+      return this.showAlertMessage(constants.ALERTS.TYPE.FAIL, alertMessage);
     },
 
     alertClosed: function() {
       this.alert.show = false;
       this.alert.message = '';
+      this.alert.type = undefined;
     },
 
     exportTemplate: function(templateDocumentId) {

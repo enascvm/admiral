@@ -1359,19 +1359,49 @@ var utils = {
 
     if (volumes) {
 
-      foundVolume = volumes.find((volume) => {
-        let volumeName = volume.name;
-        let idxContainerVolNameEnd = containerVolumeString.indexOf(':');
+      let idxContainerVolNameEnd = containerVolumeString.indexOf(':');
 
-        let containerVolumeName = (idxContainerVolNameEnd > -1)
-          && containerVolumeString.substring(0, idxContainerVolNameEnd);
+      let containerVolumeName = (idxContainerVolNameEnd > -1)
+        && containerVolumeString.substring(0, idxContainerVolNameEnd);
 
-        return containerVolumeName.indexOf(volumeName) > -1
-                || volumeName.indexOf(containerVolumeName) > -1;
-      });
+      foundVolume = utils.findBestMatch(containerVolumeName, volumes);
     }
 
     return foundVolume;
+  },
+
+  findBestMatch: function(stringToBeMatched, allValues) {
+    if (!stringToBeMatched || !allValues) {
+      return null;
+    }
+
+    let searchIn = allValues.filter(a => a.name.indexOf(stringToBeMatched) > -1);
+
+    if (!searchIn || searchIn.length === 0) {
+      return null;
+    }
+
+    // returns the one that matches the best
+    return searchIn.reduce((a, b) => a.name.length <= b.name.length ? a : b);
+  },
+
+  sortByName: function(stringToBeMatched, allValues) {
+    let sortedResults = [];
+    let coppiedValues = allValues.slice();
+
+    //on each iteration find the one whose name is most close to the searched string
+    //if no good match is found the rest of the result are simply concatenated
+    while (coppiedValues.length !== 0) {
+      let exact = utils.findBestMatch(stringToBeMatched, coppiedValues);
+      if (!exact) {
+        sortedResults = sortedResults.concat(coppiedValues);
+        break;
+      }
+      sortedResults.push(exact);
+      coppiedValues.splice(coppiedValues.indexOf(exact), 1);
+    }
+
+    return sortedResults;
   },
 
   createTagAssignmentRequest: function(resourceLink, originalTags, newTags) {
@@ -1477,9 +1507,13 @@ var utils = {
     return constants.CONTAINERS.DEFAULT_REFRESH_INTERVAL;
   },
 
-  actionAllowed() {
+  actionAllowed(roles) {
     return window.isAccessAllowed(window.authSession, null,
-        window.routesRestrictions.REQUESTS_DELETE);
+        roles);
+  },
+
+  isContainerDeveloper() {
+    return window.isContainerDeveloper(window.authSession);
   },
 
   isContainersTabOpened() {
@@ -1489,32 +1523,6 @@ var utils = {
 
     return window.frameElement.topLocation &&
         window.frameElement.topLocation.startsWith('#/home/');
-  },
-
-  isAccessAllowed(roles) {
-    if (this.isApplicationEmbedded()) {
-      return true;
-    }
-
-    if (!roles) {
-      console.warn('Roles not provided!');
-      return false;
-    }
-
-    let securityContext = window.authSession;
-    if (!securityContext) {
-      return false;
-    }
-
-    if (securityContext.roles) {
-      for (let i = 0; i < securityContext.roles.length; i++) {
-        let role = securityContext.roles[i];
-        if (roles.includes(role)) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 };
 

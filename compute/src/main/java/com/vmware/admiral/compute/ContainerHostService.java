@@ -861,7 +861,8 @@ public class ContainerHostService extends StatelessService {
                     "Illegal argument exception: " + e.getMessage(), "compute.illegal.argument",
                     e.getMessage());
         }
-        {
+
+        if (localizedEx == null) {
             localizedEx = new LocalizableValidationException(e,
                     String.format("Unexpected error: %s", e.getMessage()),
                     "compute.unexpected.error", e.getMessage());

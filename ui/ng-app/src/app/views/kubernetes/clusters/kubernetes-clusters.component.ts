@@ -11,14 +11,16 @@
 
 import { Component, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { DocumentService } from '../../../utils/document.service';
-import { Constants } from '../../../utils/constants';
-import { GridViewComponent } from '../../../components/grid-view/grid-view.component';
-import { ProjectService } from "../../../utils/project.service";
 import { AutoRefreshComponent } from '../../../components/base/auto-refresh.component';
+import { GridViewComponent } from '../../../components/grid-view/grid-view.component';
+import { DocumentService } from '../../../utils/document.service';
+import { ProjectService } from "../../../utils/project.service";
+import { RoutesRestriction } from '../../../utils/routes-restriction';
+import { Constants } from '../../../utils/constants';
 import { FT } from '../../../utils/ft';
 import { Utils } from '../../../utils/utils';
 import { Links } from '../../../utils/links';
+
 import * as I18n from 'i18next';
 
 @Component({
@@ -27,9 +29,10 @@ import * as I18n from 'i18next';
     styleUrls: ['./kubernetes-clusters.component.scss']
 })
 /**
- * Kubernetes Clusters main grid view.
+ * PKS/Kubernetes Clusters main grid view.
  */
 export class KubernetesClustersComponent extends AutoRefreshComponent {
+
     @ViewChild('gridView') gridView: GridViewComponent;
 
     projectLink: string;
@@ -37,8 +40,10 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
     serviceEndpoint = Links.CLUSTERS + '?type=KUBERNETES';
     selectedItem: any;
 
-    clusterToDelete: any;
-    deleteConfirmationAlert: string;
+    // delete/remove operations
+    deleteOp: string;
+    deleteOpCluster: any;
+    deleteConfirmationError: string;
 
     constructor(protected service: DocumentService, protected projectService: ProjectService,
                 protected router: Router, protected route: ActivatedRoute) {
@@ -64,18 +69,37 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
         super.ngOnInit();
     }
 
-    get deleteTitle() {
-        return this.clusterToDelete && this.clusterToDelete.name
-                    && I18n.t('clusters.delete.title');
+    get deleteOpClusterName(): string {
+        return this.deleteOpCluster && this.deleteOpCluster.name;
     }
 
-    get deleteConfirmationDescription(): string {
-        return this.clusterToDelete
-                    && this.clusterToDelete.name
-                    && I18n.t('clusters.delete.confirmation', {
-                        clusterName: this.clusterToDelete.name,
-                        interpolation: { escapeValue: false }
-                    } as I18n.TranslationOptions);
+    get deleteOpTitle() {
+        return this.deleteOpClusterName
+            && (this.deleteOp === 'REMOVE'
+                    ? I18n.t('kubernetes.clusters.remove.title')
+                    : I18n.t('kubernetes.clusters.destroy.title'));
+    }
+
+    get deleteOpConfirmationDescription(): string {
+        let description;
+        if (!this.deleteOpClusterName) {
+            return description;
+        }
+
+        if (this.deleteOp === 'REMOVE') {
+            description = I18n.t('kubernetes.clusters.remove.confirmation', {
+                clusterName: this.deleteOpClusterName,
+                interpolation: {escapeValue: false}
+            } as I18n.TranslationOptions)
+
+        } else if (this.deleteOp === 'DESTROY') {
+            description = I18n.t('kubernetes.clusters.destroy.confirmation', {
+                clusterName: this.deleteOpClusterName,
+                interpolation: { escapeValue: false }
+            } as I18n.TranslationOptions);
+        }
+
+        return description;
     }
 
     hasNodes(cluster) {
@@ -91,35 +115,42 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
         return properties;
     }
 
-    isDashboardInstalled(cluster): boolean {
-        let clusterCustomProperties = this.getClusterCustomProperties(cluster);
-        if (!clusterCustomProperties) {
-            return false;
-        }
-
-        let nodeLink = cluster.nodeLinks[0];
-        let installed =
-            Utils.getCustomPropertyValue(cluster.nodes[nodeLink].customProperties, '__dashboardInstalled');
-
-        return installed === "true";
-    }
-
-    openDashboard(cluster) {
+    downloadKubeConfig($event, cluster) {
         event.stopPropagation();
 
-        if (!this.isDashboardInstalled(cluster)) {
+        var hostLink = cluster.nodeLinks && cluster.nodeLinks[0];
+
+        if (!hostLink) {
+            console.log('cannot download kubeconfig: no hosts found');
             return;
         }
 
-        let properties = cluster.nodes[cluster.nodeLinks[0]].customProperties;
-        let dashboardLink = Utils.getCustomPropertyValue(properties, '__dashboardLink');
-        if (dashboardLink) {
-            window.open(dashboardLink);
-        }
+        var kubeConfigLink = Links.KUBE_CONFIG_CONTENT + '?hostLink=' + hostLink;
+        window.location.href = Utils.serviceUrl(kubeConfigLink);
     }
 
-    deleteCluster(event, cluster) {
-        this.clusterToDelete = cluster;
+    setDeleteOperation(deleteOperation, cluster) {
+        this.deleteOp = deleteOperation;
+        this.deleteOpCluster = cluster;
+    }
+
+    clearDeleteOpData() {
+        this.deleteOp = undefined;
+        this.deleteOpCluster = null;
+    }
+
+    removeCluster(event, cluster) {
+        this.setDeleteOperation('REMOVE', cluster);
+
+        event.stopPropagation();
+        // clear selection
+        this.selectedItem = null;
+        return false; // prevents navigation
+    }
+
+    destroyCluster($event, cluster) {
+        this.setDeleteOperation('DESTROY', cluster);
+
         event.stopPropagation();
         // clear selection
         this.selectedItem = null;
@@ -127,24 +158,44 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
         return false; // prevents navigation
     }
 
-    deleteConfirmed() {
-        this.service.delete(this.clusterToDelete.documentSelfLink, this.projectLink)
+    deleteOpConfirmed() {
+        if (this.deleteOp === 'REMOVE') {
+            // remove from admiral
+            this.service.delete(this.deleteOpCluster.documentSelfLink, this.projectLink)
             .then(() => {
-            this.clusterToDelete = null;
+                this.clearDeleteOpData();
 
-            this.gridView.refresh();
-        }).catch(err => {
-            this.deleteConfirmationAlert = Utils.getErrorMessage(err)._generic;
-        });
+                this.gridView.refresh();
+            }).catch(error => {
+                this.deleteConfirmationError = Utils.getErrorMessage(error)._generic;
+            });
+        } else if (this.deleteOp === 'DESTROY') {
+            // Delete cluster from pks
+            let destroyClusterSpec = {
+                "resourceType": "PKS_CLUSTER",
+                "operation": "REMOVE_RESOURCE",
+                "resourceLinks": [this.deleteOpCluster.documentSelfLink]
+            };
+
+            this.service.post(Links.REQUESTS, destroyClusterSpec).then((response) => {
+                this.clearDeleteOpData();
+                // refresh view to update status of the cluster.
+                // Note: destroy is long running op
+                this.gridView.refresh();
+            }).catch(error => {
+                this.deleteConfirmationError = Utils.getErrorMessage(error)._generic;
+            });
+        }
     }
 
-    deleteCanceled() {
-        this.clusterToDelete = null;
+    deleteOpCanceled() {
+        this.clearDeleteOpData();
     }
 
     nodeCount(cluster) {
         if (cluster) {
-            var nodesString = Utils.getCustomPropertyValue(this.getClusterCustomProperties(cluster), '__nodes');
+            let nodesString = Utils.getCustomPropertyValue(
+                                    this.getClusterCustomProperties(cluster), '__nodes');
             if (nodesString) {
                 return JSON.parse(nodesString).length;
             }
@@ -176,10 +227,21 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
     }
 
     operationSupported(op, cluster) {
+        let clusterStatus = cluster.status;
+
         if (op === 'ENABLE') {
-            return cluster.status === Constants.clusters.status.DISABLED;
+            // Enable
+            return clusterStatus === Constants.clusters.status.DISABLED;
         } else if (op === 'DISABLE') {
-            return cluster.status === Constants.clusters.status.ON;
+            // Disable
+            return clusterStatus === Constants.clusters.status.ON;
+        } else if (op === 'DESTROY') {
+            var properties = this.getClusterCustomProperties(cluster);
+            // Destroy
+            return clusterStatus !== Constants.clusters.status.PROVISIONING
+                && clusterStatus !== Constants.clusters.status.RESIZING
+                && clusterStatus !== Constants.clusters.status.REMOVING
+                && properties.__pksEndpoint;
         }
 
         return true;
@@ -238,5 +300,9 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
         } else {
             this.selectedItem = item;
         }
+    }
+
+    get addClusterRouteRestriction() {
+        return RoutesRestriction.KUBERNETES_CLUSTERS_ADD;
     }
 }

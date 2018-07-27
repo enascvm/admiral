@@ -159,6 +159,10 @@ let searchImages = function(queryOptions, searchOnlyImages, forContainerDefiniti
       }
     }
 
+    if (queryOptions.any) {
+      resultTemplates = utils.sortByName(queryOptions.any, resultTemplates);
+    }
+
     this.setInData(listViewPath.concat(['items']), resultTemplates);
     this.setInData(listViewPath.concat(['itemsLoading']), false);
     this.setInData(listViewPath.concat(['searchedItems']), true);
@@ -245,6 +249,9 @@ let loadRecommended = function(forContainerDefinition) {
     listViewPath = ['listView'];
   }
 
+  this.setInData(listViewPath.concat(['itemsLoading']), true);
+  this.emitChange();
+
   if (ft.areFavoriteImagesEnabled()) {
     recommendedImages.loadImages().then(() => {
       var globalRepositories = this.data.listView.globalRepositories;
@@ -252,12 +259,14 @@ let loadRecommended = function(forContainerDefinition) {
         recommendedImages.images.filter(i => globalRepositories.includes(i.registry)) :
         recommendedImages.images;
       this.setInData(listViewPath.concat(['items']), images);
+      this.setInData(listViewPath.concat(['itemsLoading']), false);
       this.setInData(listViewPath.concat(['favoriteImages']), images.map(i => i.documentId));
       this.setInData(listViewPath.concat(['searchedItems']), false);
       this.emitChange();
     });
   } else {
     this.setInData(listViewPath.concat(['items']), recommendedImages.images);
+    this.setInData(listViewPath.concat(['itemsLoading']), false);
     this.setInData(listViewPath.concat(['searchedItems']), false);
     this.emitChange();
   }
@@ -917,8 +926,8 @@ let TemplatesStore = Reflux.createStore({
     var containerRequest = {
       documentId: itemId,
       selectedForEdit: false,
-      selectedForRequest: false,
-      selectForKubernetesDeployment: true
+      selectedForRequest: true,
+      selectedForKubernetesDeployment: true
     };
 
     containerRequest.definitionInstance = {

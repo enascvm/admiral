@@ -12,9 +12,10 @@
 import { Component, OnInit } from '@angular/core';
 import { DocumentListResult, DocumentService } from "../../utils/document.service";
 import { ErrorService } from "../../utils/error.service";
-import { CancelablePromise, Utils} from "../../utils/utils";
+import { Constants } from "../../utils/constants";
 import { Links } from "../../utils/links";
-import {Constants} from "../../utils/constants";
+import { CancelablePromise, Utils} from "../../utils/utils";
+import { RoutesRestriction } from '../../utils/routes-restriction';
 
 @Component({
     selector: 'app-endpoints',
@@ -48,21 +49,18 @@ export class EndpointsComponent implements OnInit {
     }
 
     listEndpoints(queryOptions) {
-        console.log('listEndpoints', 'queryOptions', queryOptions);
-
         if (this.loadingPromise) {
             this.loadingPromise.cancel();
         }
 
         this.loading = true;
 
-        this.loadingPromise =
-                        new CancelablePromise(this.service.list(Links.PKS_ENDPOINTS, queryOptions));
-
+        this.loadingPromise = new CancelablePromise(this.service.list(
+            Links.PKS_ENDPOINTS, queryOptions, undefined, true));
         this.loadingPromise.getPromise().then(result => {
             this.loading = false;
-            this.endpoints = result.documents;
 
+            this.endpoints = result.documents;
         }).catch(error => {
             this.loading = false;
 
@@ -117,5 +115,13 @@ export class EndpointsComponent implements OnInit {
     resetAlert() {
         this.alertType = null;
         this.alertMessage = null;
+    }
+
+    get endpointsNewRouteRestriction() {
+        return RoutesRestriction.ENDPOINTS_NEW_VRA;
+    }
+
+    get endpointsRemoveRouteRestriction() {
+        return RoutesRestriction.ENDPOINTS_REMOVE_VRA;
     }
 }

@@ -12,6 +12,7 @@
 package com.vmware.admiral.adapter.pks;
 
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Arrays;
@@ -21,7 +22,6 @@ import java.util.Map;
 import java.util.logging.Logger;
 import javax.net.ssl.TrustManager;
 
-import com.vmware.admiral.adapter.pks.entities.KubeConfig;
 import com.vmware.admiral.adapter.pks.entities.PKSCluster;
 import com.vmware.admiral.adapter.pks.entities.PKSPlan;
 import com.vmware.admiral.adapter.pks.entities.UAATokenResponse;
@@ -29,6 +29,7 @@ import com.vmware.admiral.common.util.DeferredUtils;
 import com.vmware.admiral.common.util.DelegatingX509KeyManager;
 import com.vmware.admiral.common.util.ServerX509TrustManager;
 import com.vmware.admiral.common.util.ServiceClientFactory;
+import com.vmware.admiral.compute.kubernetes.entities.config.KubeConfig;
 import com.vmware.xenon.common.DeferredResult;
 import com.vmware.xenon.common.Operation;
 import com.vmware.xenon.common.Service;
@@ -156,6 +157,37 @@ public class PKSRemoteClientService {
         }
     }
 
+    public DeferredResult<Void> deleteCluster(PKSContext ctx, String cluster) {
+        try {
+            URI uri = UriUtils.buildUri(ctx.pksAPIUri, "v1/clusters", cluster);
+            Operation op = buildDeleteOperation(uri, ctx);
+
+            return sendWithDeferredResult(op)
+                    .thenAccept(o -> {
+                        if (o.getStatusCode() == HttpURLConnection.HTTP_NO_CONTENT
+                                || o.getStatusCode() == Operation.STATUS_CODE_NOT_FOUND) {
+                            return;
+                        } else {
+                            String msg = String.format("Delete PKS cluster failed, status code: %d",
+                                    o.getStatusCode());
+                            PKSException e = new PKSException(msg, null, o.getStatusCode());
+                            throw DeferredUtils.logErrorAndThrow(e, t -> msg, getClass());
+                        }
+                    })
+                    .exceptionally(t -> {
+                        throw DeferredUtils.logErrorAndThrow(t,
+                                e -> String.format("Error deleting PKS cluster '%s' from %s,"
+                                                + " reason: %s",
+                                        cluster, ctx.pksAPIUri, e.getMessage()),
+                                getClass());
+                    });
+        } catch (Exception e) {
+            logger.severe(String.format("Error deleting PKS cluster from %s, reason: %s",
+                    ctx != null ? ctx.pksAPIUri : "null-context", e.getMessage()));
+            return DeferredResult.failed(e);
+        }
+    }
+
     public DeferredResult<List<PKSPlan>> getPlans(PKSContext ctx) {
         try {
             URI uri = UriUtils.buildUri(ctx.pksAPIUri, "v1/plans");
@@ -181,7 +213,7 @@ public class PKSRemoteClientService {
         }
     }
 
-    public DeferredResult<KubeConfig.AuthInfo> createUser(PKSContext ctx, String cluster) {
+    public DeferredResult<KubeConfig> createUser(PKSContext ctx, String cluster) {
         try {
             URI uri = UriUtils.buildUri(ctx.pksAPIUri, "v1/clusters", cluster, "binds");
             Operation op = buildPostOperation(uri, ctx);
@@ -191,7 +223,7 @@ public class PKSRemoteClientService {
                         KubeConfig config = o.getBody(KubeConfig.class);
                         logger.fine(() -> String.format("Got response from %s for create user : %s",
                                 ctx.pksAPIUri, Utils.toJson(config)));
-                        return config.users[0];
+                        return config;
                     })
                     .exceptionally(t -> {
                         throw DeferredUtils.logErrorAndThrow(t,
@@ -206,17 +238,72 @@ public class PKSRemoteClientService {
         }
     }
 
-    /*
-    // TODO implement necessary methods
-    public void createCluster() {
+    public DeferredResult<PKSCluster> createCluster(PKSContext ctx, PKSCluster cluster) {
+        try {
+            URI uri = UriUtils.buildUri(ctx.pksAPIUri, "v1/clusters");
+            Operation op = buildPostOperation(uri, ctx)
+                    .setBody(cluster);
+
+            return sendWithDeferredResult(op)
+                    .thenApply(o -> {
+                        if (o.getStatusCode() == Operation.STATUS_CODE_ACCEPTED) {
+                            PKSCluster result = o.getBody(PKSCluster.class);
+                            logger.fine(
+                                    () -> String.format("Got response from %s for cluster %s : %s",
+                                            ctx.pksAPIUri, cluster, Utils.toJson(result)));
+                            return result;
+                        }
+                        String msg = String.format("Create PKS cluster failed, status code: %d",
+                                o.getStatusCode());
+
+                        PKSException e = new PKSException(msg, null, o.getStatusCode());
+                        throw DeferredUtils.logErrorAndThrow(e, t -> msg, getClass());
+                    })
+                    .exceptionally(t -> {
+                        throw DeferredUtils.logErrorAndThrow(t,
+                                e -> String.format("Error creating PKS cluster '%s' from %s,"
+                                                + " reason: %s",
+                                        cluster.name, ctx.pksAPIUri, e.getMessage()),
+                                getClass());
+                    });
+        } catch (Exception e) {
+            logger.severe(String.format("Error getting PKS cluster from %s, reason: %s",
+                    ctx != null ? ctx.pksAPIUri : "null-context", e.getMessage()));
+            return DeferredResult.failed(e);
+        }
     }
 
-    public void deleteCluster() {
-    }
+    public DeferredResult<Void> resizeCluster(PKSContext ctx, PKSCluster cluster) {
+        try {
+            URI uri = UriUtils.buildUri(ctx.pksAPIUri, "v1/clusters", cluster.name);
+            Operation op = buildPatchOperation(uri, ctx)
+                    .setBody(cluster.parameters);
 
-    public void resizeCluster() {
+            return sendWithDeferredResult(op)
+                    .thenAccept(o -> {
+                        if (o.getStatusCode() == HttpURLConnection.HTTP_ACCEPTED) {
+                            return;
+                        } else {
+                            String msg = String.format(
+                                    "Failed to resize PKS cluster, status code: %d",
+                                    o.getStatusCode());
+                            PKSException e = new PKSException(msg, null, o.getStatusCode());
+                            throw DeferredUtils.logErrorAndThrow(e, t -> msg, getClass());
+                        }
+                    })
+                    .exceptionally(t -> {
+                        throw DeferredUtils.logErrorAndThrow(t,
+                                e -> String.format("Error resizing PKS cluster '%s' from %s,"
+                                                + " reason: %s",
+                                        cluster, ctx.pksAPIUri, e.getMessage()),
+                                getClass());
+                    });
+        } catch (Exception e) {
+            logger.severe(String.format("Error resizing PKS cluster from %s, reason: %s",
+                    ctx != null ? ctx.pksAPIUri : "null-context", e.getMessage()));
+            return DeferredResult.failed(e);
+        }
     }
-    */
 
     /**
      * Obtains token from UAA service.
@@ -248,7 +335,8 @@ public class PKSRemoteClientService {
                     .setCompletion((o, e) -> {
                         if (e != null) {
                             logger.severe(() -> String.format("Error getting token for %s from %s,"
-                                    + " reason: %s", user, uaaEndpoint, e.getMessage()));
+                                    + " reason: %s - %s", user, uaaEndpoint,
+                                    e.getClass().getSimpleName(), e.getMessage()));
                             deferredResult.fail(e);
                             return;
                         }
@@ -308,6 +396,28 @@ public class PKSRemoteClientService {
      */
     private Operation buildPostOperation(URI uri, PKSContext ctx) {
         return buildOperation(Operation.createPost(uri), ctx);
+    }
+
+    /**
+     * Creates <code>DELETE</code> operation initialized with authorization header.
+     *
+     * @param uri operation uri
+     * @param ctx PKS context with the token
+     * @return operation instance
+     */
+    private Operation buildDeleteOperation(URI uri, PKSContext ctx) {
+        return buildOperation(Operation.createDelete(uri), ctx);
+    }
+
+    /**
+     * Creates <code>PATCH</code> operation initialized with authorization header.
+     *
+     * @param uri operation uri
+     * @param ctx PKS context with the token
+     * @return operation instance
+     */
+    private Operation buildPatchOperation(URI uri, PKSContext ctx) {
+        return buildOperation(Operation.createPatch(uri), ctx);
     }
 
     /**

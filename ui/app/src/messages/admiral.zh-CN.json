@@ -200,6 +200,7 @@
         "publicTitle": "公钥",
         "publicCertificateTitle": "公用证书",
         "privateCertificateTitle": "私有证书",
+        "bearerTokenTitle": "Bearer token",
         "customProperties": "自定义属性"
       }
     },
@@ -261,6 +262,7 @@
         "title": "常用模板",
         "titleSearch": "找到的模板",
         "popularRepositories": "常用存储库",
+        "repositoriesSearchWarning": "请指定要搜索的术语。搜索无法继续。",
         "searchImagesTemplatesPlaceholder": "搜索映像、模板",
         "searchImagesPlaceholder": "搜索映像",
         "searchRepositoriesPlaceholder": "搜索存储库",
@@ -290,7 +292,10 @@
           "closures": "闭包服务",
           "repositories": "存储库"
         },
-        "createTemplate": "模板"
+        "createTemplate": "模板",
+        "addToFavorites": "将映像添加到收藏夹",
+        "removeFromFavorites": "从收藏夹移除映像",
+        "addedImageToFavoritesMessage": "映像已加入收藏夹"
       },
       "details": {
         "create": "创建模板",

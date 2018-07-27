@@ -19,6 +19,7 @@ import { DocumentService } from './../../utils/document.service';
 import { ErrorService } from '../../utils/error.service';
 import { ProjectService } from './../../utils/project.service';
 import { Roles } from './../../utils/roles';
+import { Utils } from './../../utils/utils';
 import { FT } from './../../utils/ft';
 
 @Component({
@@ -62,6 +63,7 @@ export class MainResourcesComponent implements OnInit, OnDestroy {
     selectedProject;
     projects;
     showLibrary: boolean;
+    showKubernetes: boolean;
 
     alertMessage: string;
 
@@ -124,6 +126,7 @@ export class MainResourcesComponent implements OnInit, OnDestroy {
         this.projectService.setSelectedProject(this.selectedProject);
 
         this.checkShowLibrary();
+        this.checkShowKubernetes();
       });
     }
 
@@ -170,17 +173,20 @@ export class MainResourcesComponent implements OnInit, OnDestroy {
     }
 
     sortProjects() {
-      this.projects.sort((project1, project2) => {
-        if (project1.name > project2.name) {
-          return 1;
-        }
+      let sortField = FT.isApplicationEmbedded() ? "label" : "name";
+      Utils.sortObjectArrayByField(this.projects, sortField);
+    }
 
-        if (project1.name < project2.name) {
-          return -1;
-        }
-
-        return 0;
-      });
+    checkShowKubernetes() {
+      if (FT.isApplicationEmbedded() && FT.isPksEnabled()) {
+        this.authService.getCachedSecurityContext().then(securityContext => {
+          // check if the user is only container developer
+          if (securityContext && securityContext.indexOf(Roles.VRA_CONTAINER_DEVELOPER) > -1 &&
+                securityContext.indexOf(Roles.VRA_CONTAINER_ADMIN) == -1) {
+            this.showKubernetes = true;
+          }
+        });
+      }
     }
 
     checkShowLibrary() {
@@ -223,6 +229,10 @@ export class MainResourcesComponent implements OnInit, OnDestroy {
         return RoutesRestriction.DEPLOYMENTS;
     }
 
+    get infrastructureRouteRestriction() {
+        return RoutesRestriction.INFRASTRUCTURE;
+    }
+
     get clustersRouteRestriction() {
         return RoutesRestriction.CLUSTERS;
     }
@@ -247,5 +257,15 @@ export class MainResourcesComponent implements OnInit, OnDestroy {
       return "navigation.clusters";
     }
 
+    get endpointsRouteRestriction() {
+        return RoutesRestriction.ENDPOINTS_MENU_VRA;
+    }
 
+    get identityManagementRouteRestriction() {
+        return RoutesRestriction.IDENTITY_MANAGEMENT;
+    }
+
+    get registriesRouteRestriction() {
+        return RoutesRestriction.REGISTRIES;
+    }
 }

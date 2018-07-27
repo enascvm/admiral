@@ -10,8 +10,8 @@
   -->
 
 <div class="images-view" :class="{'right-context-expanded':  contextExpanded}">
-  <alert :alert-type="alert.type" :show-alert="alert.show" :alert-message="alert.message"
-         @alert-closed="alertClosed()"></alert>
+  <alert v-if="alert.message" :alert-type="alert.type" :show-alert="alert.show"
+         :alert-message="alert.message" @alert-closed="alertClosed()"></alert>
 
   <div class="list-holder">
     <div class="main-panel">
@@ -24,7 +24,7 @@
         <div class="toolbar">
           <div class="row">
             <div class="col-sm-6 toolbar-primary">
-              <span v-if="selectedCategory === constants.TEMPLATES.SEARCH_CATEGORY.TEMPLATES">
+              <span v-if="selectedCategory === constants.TEMPLATES.SEARCH_CATEGORY.TEMPLATES && isTemplatesActionsAllowed()">
                 <a class="btn btn-link create-resource-btn" @click="openCreateTemplate($event)">
                   <i class="fa fa-plus"></i>{{i18n("app.template.list.createTemplate")}}
                 </a>
@@ -46,6 +46,8 @@
               <grid-search :query-options="queryOptions"
                            :search-tag-name="searchTag"
                            :placeholder="searchPlaceholder"
+                           :filter-tag-name="searchTag"
+                           :filter-tag-value="selectedRegistryOption && selectedRegistryOption.value"
                            @search-grid-action="search"></grid-search>
             </div>
           </div>
@@ -126,9 +128,9 @@
       <template-details-view v-ref:template-details v-if="model.selectedItemDetails.selectedForEdit"
                              :model="model.selectedItemDetails"></template-details-view>
       <container-request-form v-if="model.selectedItemDetails.selectedForRequest"
-                             :model="model.selectedItemDetails"></container-request-form>
-      <kubernetes-request-form v-if="model.selectedItemDetails.selectForKubernetesDeployment"
-                             :model="model.selectedItemDetails"></kubernetes-request-form>
+                             :model="model.selectedItemDetails"
+                             :kubernetes="model.selectedItemDetails.selectedForKubernetesDeployment">
+                  </container-request-form>
       <closure-request-form class="template-details"
                             v-if="!!model.selectedItemDetails.addClosureView && areClosuresAllowed"
                             :shown-in-templates="true"
@@ -154,7 +156,7 @@
       </context-sidepanel-toolbar-item>
 
       <context-sidepanel-toolbar-item
-        v-if="isApplicationEmbedded()"
+        v-if="isApplicationEmbedded() && isDeploymentPoliciesAllowed()"
         :active="activeContextItem === 'deploymentPolicies'"
         :label="i18n('app.deploymentPolicy.contextPanelTooltip')"
         @open="openToolbarDeploymentPolicies()" @close="closeToolbar()">

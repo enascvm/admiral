@@ -11,6 +11,7 @@
 
 package com.vmware.admiral.compute.content.kubernetes;
 
+import static com.vmware.admiral.adapter.pks.PKSConstants.PKS_ENDPOINT_PROP_NAME;
 import static com.vmware.admiral.common.util.AssertUtil.assertNotEmpty;
 import static com.vmware.admiral.compute.content.CompositeTemplateUtil.filterComponentTemplates;
 import static com.vmware.admiral.compute.content.CompositeTemplateUtil.isNullOrEmpty;
@@ -18,11 +19,14 @@ import static com.vmware.admiral.compute.content.kubernetes.KubernetesConverter.
 import static com.vmware.admiral.compute.content.kubernetes.KubernetesConverter.fromContainerDescriptionToService;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,6 +46,7 @@ import com.vmware.admiral.compute.content.CompositeTemplate;
 import com.vmware.admiral.compute.kubernetes.KubernetesEntityDataCollection.KubernetesEntityData;
 import com.vmware.admiral.compute.kubernetes.entities.common.BaseKubernetesObject;
 import com.vmware.admiral.compute.kubernetes.entities.common.ObjectMeta;
+import com.vmware.admiral.compute.kubernetes.entities.config.KubeConfig;
 import com.vmware.admiral.compute.kubernetes.entities.deployments.Deployment;
 import com.vmware.admiral.compute.kubernetes.entities.pods.Pod;
 import com.vmware.admiral.compute.kubernetes.entities.pods.PodTemplate;
@@ -79,6 +84,7 @@ public class KubernetesUtil {
     public static final String NODE_TYPE = "Node";
     public static final String NAMESPACE_TYPE = "Namespace";
     public static final String ENDPOINTS_TYPE = "Endpoints";
+    public static final String CONFIG_TYPE = "Config";
 
     public static final String KUBERNETES_API_VERSION_V1 = "v1";
     public static final String KUBERNETES_API_VERSION_V1_BETA1 = "extensions/v1beta1";
@@ -320,8 +326,8 @@ public class KubernetesUtil {
                 return desc;
 
             case REPLICATION_CONTROLLER_TYPE:
-                ReplicationController controller = desc.getKubernetesEntity(ReplicationController
-                        .class);
+                ReplicationController controller = desc
+                        .getKubernetesEntity(ReplicationController.class);
                 if (controller.spec == null || controller.spec.template == null) {
                     return desc;
                 }
@@ -365,18 +371,19 @@ public class KubernetesUtil {
 
     }
 
-    public static <T extends BaseKubernetesState> Class<T> getStateTypeFromSelfLink(String
-            selfLink) {
+    public static <T extends BaseKubernetesState> Class<T> getStateTypeFromSelfLink(
+            String selfLink) {
 
-        Class<? extends ResourceState> resourceStateClass =
-                CompositeComponentRegistry.metaByStateLink(selfLink).stateClass;
+        Class<? extends ResourceState> resourceStateClass = CompositeComponentRegistry
+                .metaByStateLink(selfLink).stateClass;
 
         return fromResourceStateToBaseKubernetesState(resourceStateClass);
 
     }
 
     public static String buildLogUriPath(BaseKubernetesState state, String containerName) {
-        return UriUtils.buildUriPath(LogService.FACTORY_LINK, state.documentSelfLink + "-" +
+        return UriUtils.buildUriPath(LogService.FACTORY_LINK,
+                UriUtils.getLastPathSegment(state.documentSelfLink) + "-" +
                 containerName);
     }
 
@@ -412,4 +419,75 @@ public class KubernetesUtil {
         }
         return number;
     }
+
+    public static boolean isPKSManagedHost(ComputeState host) {
+        if (host == null || host.customProperties == null) {
+            return false;
+        }
+        return host.customProperties.containsKey(PKS_ENDPOINT_PROP_NAME);
+    }
+
+    public static KubeConfig constructKubeConfig(String clusterAddress, String certificate,
+            String privateKey) {
+
+        KubeConfig config = createKubeConfig(clusterAddress);
+
+        KubeConfig.UserEntry userEntry = new KubeConfig.UserEntry();
+        userEntry.name = config.contexts.get(0).context.user;
+        userEntry.user = new KubeConfig.AuthInfo();
+        userEntry.user.clientCertificateData = new String(
+                Base64.getEncoder().encode(certificate.getBytes()));
+        userEntry.user.clientKeyData = new String(
+                Base64.getEncoder().encode(privateKey.getBytes()));
+        config.users = Arrays.asList(userEntry);
+
+        return config;
+    }
+
+    public static KubeConfig constructKubeConfig(String clusterAddress, String token) {
+
+        KubeConfig config = createKubeConfig(clusterAddress);
+
+        KubeConfig.UserEntry userEntry = new KubeConfig.UserEntry();
+        userEntry.name = config.contexts.get(0).context.user;
+        userEntry.user = new KubeConfig.AuthInfo();
+        userEntry.user.token = token;
+        config.users = Arrays.asList(userEntry);
+
+        return config;
+    }
+
+    private static KubeConfig createKubeConfig(String clusterAddress) {
+        KubeConfig config = new KubeConfig();
+        config.apiVersion = KUBERNETES_API_VERSION_V1;
+        config.kind = CONFIG_TYPE;
+        config.currentContext = UUID.randomUUID().toString();
+
+        KubeConfig.ContextEntry contextEntry = new KubeConfig.ContextEntry();
+        contextEntry.name = config.currentContext;
+        contextEntry.context = new KubeConfig.Context();
+        contextEntry.context.cluster = config.currentContext;
+        contextEntry.context.user = UUID.randomUUID().toString();
+        config.contexts = Arrays.asList(contextEntry);
+
+        KubeConfig.ClusterEntry clusterEntry = new KubeConfig.ClusterEntry();
+        clusterEntry.name = config.currentContext;
+        clusterEntry.cluster = new KubeConfig.Cluster();
+        clusterEntry.cluster.server = clusterAddress;
+        clusterEntry.cluster.insecureSkipTlsVerify = true;
+        config.clusters = Arrays.asList(clusterEntry);
+
+        return config;
+    }
+
+    public static String extractTokenFromKubeConfig(KubeConfig kubeConfig) {
+        if (kubeConfig.users == null
+                || kubeConfig.users.isEmpty()
+                || kubeConfig.users.get(0).user == null
+                || kubeConfig.users.get(0).user.token == null) {
+            return null;
+        }
+        return kubeConfig.users.get(0).user.token;
+    }
+
 }

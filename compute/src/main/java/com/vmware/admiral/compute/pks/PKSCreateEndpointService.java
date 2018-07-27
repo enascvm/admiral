@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import com.vmware.admiral.adapter.common.AdapterRequest;
 import com.vmware.admiral.adapter.pks.PKSConstants;
@@ -26,6 +27,7 @@ import com.vmware.admiral.common.ManagementUriParts;
 import com.vmware.admiral.common.util.AssertUtil;
 import com.vmware.admiral.common.util.QueryUtil;
 import com.vmware.admiral.common.util.ServiceDocumentQuery;
+import com.vmware.admiral.common.util.TenantLinksUtil;
 import com.vmware.admiral.compute.EndpointCertificateUtil;
 import com.vmware.admiral.compute.HostSpec;
 import com.vmware.admiral.compute.pks.PKSEndpointService.Endpoint;
@@ -95,6 +97,12 @@ public class PKSCreateEndpointService extends StatelessService {
 
             List<String> tenantLinks = endpointSpec.getHostTenantLinks();
             if (tenantLinks != null) {
+                tenantLinks = tenantLinks.stream()
+                        .filter(TenantLinksUtil::isTenantLink)
+                        .collect(Collectors.toList());
+            }
+
+            if (tenantLinks != null && !tenantLinks.isEmpty()) {
                 q.querySpec.query
                         .addBooleanClause(QueryUtil.addTenantGroupAndUserClause(tenantLinks));
             }
@@ -131,9 +139,6 @@ public class PKSCreateEndpointService extends StatelessService {
     }
 
     private void validateConnection(EndpointSpec endpointSpec, Operation op) {
-        endpointSpec.acceptCertificate = false;
-        endpointSpec.acceptHostAddress = false;
-        endpointSpec.acceptCertificateForHost = null;
         validateSslTrust(endpointSpec, op,
                 () -> pingEndpoint(endpointSpec, op, (ignored) -> completeOperationSuccess(op))
         );
@@ -222,9 +227,9 @@ public class PKSCreateEndpointService extends StatelessService {
 
         Operation store;
         if (e.documentSelfLink == null
-                || !e.documentSelfLink.startsWith(PKSEndpointService.FACTORY_LINK)) {
+                || !e.documentSelfLink.startsWith(PKSEndpointFactoryService.SELF_LINK)) {
             store = Operation
-                    .createPost(getHost(), PKSEndpointService.FACTORY_LINK)
+                    .createPost(getHost(), PKSEndpointFactoryService.SELF_LINK)
                     .addPragmaDirective(Operation.PRAGMA_DIRECTIVE_FORCE_INDEX_UPDATE);
         } else {
             store = Operation.createPut(getHost(), e.documentSelfLink);
@@ -241,9 +246,9 @@ public class PKSCreateEndpointService extends StatelessService {
                     }
                     Endpoint endpoint = o.getBody(Endpoint.class);
                     String documentSelfLink = endpoint.documentSelfLink;
-                    if (!documentSelfLink.startsWith(PKSEndpointService.FACTORY_LINK)) {
+                    if (!documentSelfLink.startsWith(PKSEndpointFactoryService.SELF_LINK)) {
                         documentSelfLink = UriUtils.buildUriPath(
-                                PKSEndpointService.FACTORY_LINK, documentSelfLink);
+                                PKSEndpointFactoryService.SELF_LINK, documentSelfLink);
                     }
 
                     op.addResponseHeader(Operation.LOCATION_HEADER, documentSelfLink);
@@ -257,54 +262,6 @@ public class PKSCreateEndpointService extends StatelessService {
         op.setBody(null);
         op.complete();
     }
-
-    /*
-            try {
-            EndpointSpec endpointSpec = op.getBody(EndpointSpec.class);
-            validate(endpointSpec.endpoint);
-
-            URI uaaUri = URI.create(endpointSpec.endpoint.uaaEndpoint);
-            HostSpec uaaHostSpec = new HostSpec() {
-                @Override
-                public boolean isSecureScheme() {
-                    return UriUtils.HTTPS_SCHEME.equals(uaaUri.getScheme());
-                }
-
-                @Override
-                public List<String> getHostTenantLinks() {
-                    return null;
-                }
-            };
-            uaaHostSpec.uri = uaaUri;
-
-            EndpointCertificateUtil.validateSslTrust(this, uaaHostSpec, op, () -> {
-                URI apiUri = URI.create(endpointSpec.endpoint.apiEndpoint);
-
-                HostSpec apiHostSpec = new HostSpec() {
-                    @Override
-                    public boolean isSecureScheme() {
-                        return UriUtils.HTTPS_SCHEME.equals(apiUri.getScheme());
-                    }
-
-                    @Override
-                    public List<String> getHostTenantLinks() {
-                        return null;
-                    }
-                };
-                apiHostSpec.uri = apiUri;
-
-                EndpointCertificateUtil.validateSslTrust(this, apiHostSpec, op, () -> {
-                    op.setBodyNoCloning(endpointSpec.endpoint);
-                    op.complete();
-                });
-            });
-        } catch (Throwable e) {
-            logSevere("Error creating PKS endpoint: %s. Error: %s", e.getMessage(),
-                    Utils.toString(e));
-            op.fail(e);
-        }
-
-     */
 
     private void validate(EndpointSpec spec) {
         AssertUtil.assertNotNull(spec, "endpoint spec");

@@ -200,6 +200,7 @@
         "publicTitle": "Общедоступный ключ",
         "publicCertificateTitle": "Общедоступный сертификат",
         "privateCertificateTitle": "Закрытый сертификат",
+        "bearerTokenTitle": "Bearer token",
         "customProperties": "Настраиваемые свойства"
       }
     },
@@ -261,6 +262,7 @@
         "title": "Популярные шаблоны",
         "titleSearch": "Найденные шаблоны",
         "popularRepositories": "Часто используемые репозитории",
+        "repositoriesSearchWarning": "Укажите условие поиска. Невозможно продолжить поиск.",
         "searchImagesTemplatesPlaceholder": "Поиск образов, шаблонов",
         "searchImagesPlaceholder": "Поиск образов",
         "searchRepositoriesPlaceholder": "Поиск репозиториев",
@@ -290,7 +292,10 @@
           "closures": "Закрытия",
           "repositories": "Репозитории"
         },
-        "createTemplate": "Шаблон"
+        "createTemplate": "Шаблон",
+        "addToFavorites": "Добавить изображение в избранное",
+        "removeFromFavorites": "Удалить изображение из избранного",
+        "addedImageToFavoritesMessage": "Изображение добавлено в избранное"
       },
       "details": {
         "create": "Создать шаблон",
@@ -475,7 +480,7 @@
         "addButton": "Реестр",
         "addressColumn": "Адрес",
         "nameColumn": "Имя",
-        "statusColumn": "Включено"
+        "statusColumn": "Включен"
       },
       "edit": {
         "createNew": "Новый реестр",
@@ -1357,7 +1362,7 @@
     "failure": "Ошибка проверки подлинности"
   },
   "dropdownSearchMenu": {
-    "title": "Выберите из списка: {{entity}}",
+    "title": "Выбор из списка {{entity}}",
     "searchPlaceholder": "Поиск: {{entity}}",
     "clear": "Очистить выбор",
     "showingCount": "Показано: {{count}} из {{totalCount}}",

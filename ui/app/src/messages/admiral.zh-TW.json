@@ -200,6 +200,7 @@
         "publicTitle": "公開金鑰",
         "publicCertificateTitle": "公開憑證",
         "privateCertificateTitle": "私密憑證",
+        "bearerTokenTitle": "Bearer token",
         "customProperties": "自訂內容"
       }
     },
@@ -261,6 +262,7 @@
         "title": "常用範本",
         "titleSearch": "找到的範本",
         "popularRepositories": "常用存放庫",
+        "repositoriesSearchWarning": "請指定搜尋詞彙。搜尋無法繼續。",
         "searchImagesTemplatesPlaceholder": "搜尋映像、範本",
         "searchImagesPlaceholder": "搜尋映像",
         "searchRepositoriesPlaceholder": "搜尋存放庫",
@@ -290,7 +292,10 @@
           "closures": "閉包",
           "repositories": "存放庫"
         },
-        "createTemplate": "範本"
+        "createTemplate": "範本",
+        "addToFavorites": "將映像新增至 [我的最愛]",
+        "removeFromFavorites": "從 [我的最愛] 中移除映像",
+        "addedImageToFavoritesMessage": "映像已新增至 [我的最愛]"
       },
       "details": {
         "create": "建立範本",

@@ -14,9 +14,11 @@ package com.vmware.admiral.host;
 import com.vmware.admiral.adapter.kubernetes.service.KubernetesAdapterService;
 import com.vmware.admiral.adapter.kubernetes.service.KubernetesApplicationAdapterService;
 import com.vmware.admiral.adapter.kubernetes.service.KubernetesHostAdapterService;
+import com.vmware.admiral.adapter.pks.service.KubeConfigContentService;
 import com.vmware.admiral.adapter.pks.service.PKSAdapterService;
 import com.vmware.admiral.adapter.pks.service.PKSClusterConfigService;
 import com.vmware.admiral.adapter.pks.service.PKSClusterListService;
+import com.vmware.admiral.adapter.pks.service.PKSPlanListService;
 import com.vmware.admiral.adapter.pks.test.MockPKSAdapterService;
 import com.vmware.admiral.service.kubernetes.test.MockKubernetesApplicationAdapterService;
 import com.vmware.admiral.service.test.MockKubernetesAdapterService;
@@ -60,8 +62,14 @@ public class HostInitKubernetesAdapterServiceConfig {
                     Operation.createPost(UriUtils.buildUri(host, PKSClusterListService.class)),
                     new PKSClusterListService());
             host.startService(
+                    Operation.createPost(UriUtils.buildUri(host, PKSPlanListService.class)),
+                    new PKSPlanListService());
+            host.startService(
                     Operation.createPost(UriUtils.buildUri(host, PKSClusterConfigService.class)),
                     new PKSClusterConfigService());
+            host.startService(
+                    Operation.createPost(UriUtils.buildUri(host, KubeConfigContentService.class)),
+                    new KubeConfigContentService());
         }
     }
 }

@@ -8,7 +8,9 @@
   ~ and license terms. Your use of these subcomponents is subject to the terms and
   ~ conditions of the subcomponent's license, as noted in the LICENSE file.
   -->
+
 <div class="main-view">
+
     <clr-alert *ngIf="alertMessage" [clrAlertType]="alertType" [(clrAlertClosed)]="!alertMessage"
                (clrAlertClosedChange)="resetAlert()">
         <div class="alert-item">
@@ -23,73 +25,13 @@
         <clr-tab>
             <button clrTabLink id="generalTab">{{"endpoints.details.generalTabTitle" | i18n}}</button>
             <clr-tab-content id="generalContent" *clrIfActive>
-                <form [formGroup]="endpointDetailsForm">
-                    <section class="form-block">
-                        <div class="form-group">
-                            <label for="endpointName" class="required">{{"endpoints.details.nameFieldTitle" | i18n}}</label>
-                            <label for="endpointName" aria-haspopup="true" role="tooltip"
-                                   class="tooltip tooltip-validation tooltip-sm tooltip-right"
-                                   [class.invalid]="endpointDetailsForm.get('name').invalid
-                                                    && (endpointDetailsForm.get('name').dirty
-                                                    || endpointDetailsForm.get('name').touched)">
-                                <input id="endpointName" type="text" formControlName="name" size="45">
-                                <span class="tooltip-content">{{"endpoints.details.nameRequired" | i18n}}</span>
-                            </label>
-                        </div>
-                        <div class="form-group">
-                            <label for="endpointDescription">{{"endpoints.details.descriptionFieldTitle" | i18n}}</label>
-                            <div class="endpoint-description">
-                                <textarea id="endpointDescription" rows="5" formControlName="description"></textarea>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="uaaAddress" class="required">{{"endpoints.details.uaaAddressFieldTitle" | i18n}}</label>
-                            <label for="uaaAddress" aria-haspopup="true" role="tooltip"
-                                   class="tooltip tooltip-validation tooltip-sm tooltip-right"
-                                   [class.invalid]="endpointDetailsForm.get('uaaAddress').invalid
-                                                    && (endpointDetailsForm.get('uaaAddress').dirty
-                                                    || endpointDetailsForm.get('uaaAddress').touched)">
-                                <input id="uaaAddress" type="text" formControlName="uaaAddress" size="45">
-                                <span class="tooltip-content">{{"endpoints.details.uaaAddressRequired" | i18n}}</span>
-                            </label>
-                        </div>
-                        <div class="form-group">
-                            <label for="uaaCredentials">{{ "endpoints.details.credentials" | i18n }}</label>
-                            <dropdown formControlName="uaaCredentials" [options]="credentials"
-                                      [title]="credentialsTitle"
-                                      [searchPlaceholder]="credentialsSearchPlaceholder"
-                                      ddClass="bottom-right">
-                            </dropdown>
-                        </div>
-                        <div class="form-group">
-                            <label for="pksAddress" class="required">{{"endpoints.details.pksAddressFieldTitle" | i18n}}</label>
-                            <label for="pksAddress" aria-haspopup="true" role="tooltip"
-                                   class="tooltip tooltip-validation tooltip-sm tooltip-right"
-                                   [class.invalid]="endpointDetailsForm.get('pksAddress').invalid
-                                        && (endpointDetailsForm.get('pksAddress').dirty
-                                        || endpointDetailsForm.get('pksAddress').touched)">
-                                <input id="pksAddress" type="text" formControlName="pksAddress" size="45">
-                                <span class="tooltip-content">{{"endpoints.details.pksAddressRequired" | i18n}}</span>
-                            </label>
-                        </div>
-
-                        <button type="button" class="btn btn-secondary"
-                                [clrLoading]="isTestingConnection"
-                                [disabled]="isSavingEndpoint || endpointDetailsForm.invalid"
-                                (click)="testConnection()">{{"endpoints.details.testConnectionBtn" | i18n}}</button>
-                        <button type="button" class="btn btn-secondary"
-                                [disabled]="isSavingEndpoint"
-                                (click)="cancel()">{{ "cancel" | i18n }}</button>
-                        <button *ngIf="!editMode" type="button" class="btn btn-primary"
-                                [clrLoading]="isSavingEndpoint"
-                                [disabled]="endpointDetailsForm.invalid"
-                                (click)="create()">{{"create" | i18n}}</button>
-                        <button *ngIf="editMode" type="button" class="btn btn-primary"
-                                [clrLoading]="isSavingEndpoint"
-                                [disabled]="endpointDetailsForm.invalid"
-                                (click)="save()">{{ "save" | i18n }}</button>
-                    </section>
-                </form>
+                <app-endpoint-create [entity]="entity"></app-endpoint-create>
+            </clr-tab-content>
+        </clr-tab>
+        <clr-tab *ngIf="editMode">
+            <button clrTabLink id="assignmentsTab">{{"endpoints.details.assignmentsTabTitle" | i18n}}</button>
+            <clr-tab-content id="assignmentsTab" *clrIfActive>
+                <app-endpoint-assignments [entity]="entity"></app-endpoint-assignments>
             </clr-tab-content>
         </clr-tab>
         <clr-tab *ngIf="editMode">
@@ -100,16 +42,22 @@
                     <div table-content-view>
                         <clr-datagrid [clrDgLoading]="loadingClusters" [clDgRowSelection]="false">
                             <clr-dg-column>{{"pks.add.existingClusters.columnTitleName" | i18n}}</clr-dg-column>
+                            <clr-dg-column>{{"pks.add.existingClusters.columnTitleHostname" | i18n}}</clr-dg-column>
                             <clr-dg-column>{{"pks.add.existingClusters.columnTitleMastersCount" | i18n}}</clr-dg-column>
                             <clr-dg-column>{{"pks.add.existingClusters.columnTitleWorkersCount" | i18n}}</clr-dg-column>
                             <clr-dg-column>{{"pks.add.existingClusters.columnTitlePlan" | i18n}}</clr-dg-column>
+                            <clr-dg-column>{{"pks.add.existingClusters.columnTitleLastAction" | i18n}}</clr-dg-column>
+                            <clr-dg-column>{{"pks.add.existingClusters.columnTitleLastActionStatus" | i18n}}</clr-dg-column>
                             <clr-dg-column>{{"pks.add.existingClusters.columnTitleInAdmiral" | i18n}}</clr-dg-column>
 
                             <clr-dg-row *clrDgItems="let cluster of clusters" [clrDgItem]="cluster">
                                 <clr-dg-cell>{{cluster.name}}</clr-dg-cell>
+                                <clr-dg-cell>{{cluster.hostname}}</clr-dg-cell>
                                 <clr-dg-cell>{{cluster.masterNodesCount}}</clr-dg-cell>
                                 <clr-dg-cell>{{cluster.workerNodesCount}}</clr-dg-cell>
-                                <clr-dg-cell>{{(cluster.plan ? "pks.new.settings.plan." + cluster.plan : "notAvailable") | i18n}}</clr-dg-cell>
+                                <clr-dg-cell>{{(cluster.plan ? cluster.plan : "notAvailable") | i18n}}</clr-dg-cell>
+                                <clr-dg-cell>{{cluster.lastAction}}</clr-dg-cell>
+                                <clr-dg-cell>{{cluster.lastActionStatus}}</clr-dg-cell>
                                 <clr-dg-cell>{{(cluster.addedInAdmiral ? "pks.add.existingClusters.yes" : "pks.add.existingClusters.no") | i18n}}</clr-dg-cell>
                             </clr-dg-row>
 

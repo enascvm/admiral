@@ -200,6 +200,7 @@
         "publicTitle": "Public key",
         "publicCertificateTitle": "Public certificate",
         "privateCertificateTitle": "Private certificate",
+        "bearerTokenTitle": "Bearer token",
         "customProperties": "Custom properties"
       }
     },
@@ -261,6 +262,7 @@
         "title": "Popular Templates",
         "titleSearch": "Found Templates",
         "popularRepositories": "Popular Repositories",
+        "repositoriesSearchWarning": "Please, specify term to search for. The search cannot proceed.",
         "searchImagesTemplatesPlaceholder": "Search for images, templates",
         "searchImagesPlaceholder": "Search for images",
         "searchRepositoriesPlaceholder": "Search for repositories",
