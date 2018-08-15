@@ -32,7 +32,6 @@ import * as I18n from 'i18next';
  * PKS/Kubernetes Clusters main grid view.
  */
 export class KubernetesClustersComponent extends AutoRefreshComponent {
-
     @ViewChild('gridView') gridView: GridViewComponent;
 
     projectLink: string;
@@ -51,20 +50,33 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
         super(router, route, FT.allowHostEventsSubscription(),
                 Utils.getClustersViewRefreshInterval(), true);
 
-        projectService.activeProject.subscribe((value) => {
-            if (value && value.documentSelfLink) {
-                this.projectLink = value.documentSelfLink;
-            } else if (value && value.id) {
-                this.projectLink = value.id;
-            } else {
-                this.projectLink = undefined;
-            }
+        Utils.subscribeForProjectChange(projectService, (changedProjectLink) => {
+            this.projectLink = changedProjectLink;
         });
     }
 
     ngOnInit(): void {
         this.refreshFnCallScope = this.gridView;
         this.refreshFn = this.gridView.autoRefresh;
+
+        var me = this;
+        this.gridView.processItemsFn = function(itemsValue) {
+            let processedItems = itemsValue.map(itemVal => {
+                if (me.operationSupported('ENABLE', itemVal)) {
+                    itemVal.supportsOperationEnable = true;
+                }
+                if (me.operationSupported('DISABLE', itemVal)) {
+                    itemVal.supportsOperationDisable = true;
+                }
+                if (me.operationSupported('DESTROY', itemVal)) {
+                    itemVal.supportsOperationDestroy = true;
+                }
+
+                return itemVal;
+            });
+
+            return processedItems;
+        };
 
         super.ngOnInit();
     }
@@ -89,7 +101,7 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
         if (this.deleteOp === 'REMOVE') {
             description = I18n.t('kubernetes.clusters.remove.confirmation', {
                 clusterName: this.deleteOpClusterName,
-                interpolation: {escapeValue: false}
+                interpolation: { escapeValue: false }
             } as I18n.TranslationOptions)
 
         } else if (this.deleteOp === 'DESTROY') {
@@ -102,8 +114,12 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
         return description;
     }
 
+    get deleteOpConfirmationBtnTextKey(): string {
+        return (this.deleteOp === 'DESTROY') && 'destroy';
+    }
+
     hasNodes(cluster) {
-        return cluster && cluster.nodes && cluster.nodeLinks && cluster.nodeLinks.length > 0;
+        return cluster && cluster.nodeLinks && cluster.nodeLinks.length > 0;
     }
 
     getClusterCustomProperties(cluster) {
@@ -115,8 +131,15 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
         return properties;
     }
 
+    totalMemory(cluster) {
+        if (cluster && cluster.totalMemory) {
+            return this.formatNumber(cluster.totalMemory) + 'B';
+        }
+        return I18n.t('notAvailable');
+    }
+
     downloadKubeConfig($event, cluster) {
-        event.stopPropagation();
+        $event.stopPropagation();
 
         var hostLink = cluster.nodeLinks && cluster.nodeLinks[0];
 
@@ -236,12 +259,12 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
             // Disable
             return clusterStatus === Constants.clusters.status.ON;
         } else if (op === 'DESTROY') {
-            var properties = this.getClusterCustomProperties(cluster);
             // Destroy
-            return clusterStatus !== Constants.clusters.status.PROVISIONING
-                && clusterStatus !== Constants.clusters.status.RESIZING
-                && clusterStatus !== Constants.clusters.status.REMOVING
-                && properties.__pksEndpoint;
+            return Utils.isPksCluster(cluster)
+                    && clusterStatus !== Constants.clusters.status.PROVISIONING
+                    && clusterStatus !== Constants.clusters.status.RESIZING
+                    && clusterStatus !== Constants.clusters.status.DESTROYING
+                    && clusterStatus !== Constants.clusters.status.UNREACHABLE;
         }
 
         return true;
@@ -256,7 +279,7 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
 
         var hostLink = cluster.nodeLinks[0];
 
-        this.service.patch(hostLink, {'powerState': Constants.hosts.state.ON}, this.projectLink)
+        this.service.patch(hostLink, {'powerState': Constants.hosts.state.ON})
             .then(() => {
 
                 this.gridView.refresh();
@@ -276,7 +299,7 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
 
         var hostLink = cluster.nodeLinks[0];
 
-        this.service.patch(hostLink, {'powerState': Constants.hosts.state.SUSPEND}, this.projectLink)
+        this.service.patch(hostLink, {'powerState': Constants.hosts.state.SUSPEND})
             .then(() => {
 
                 this.gridView.refresh();

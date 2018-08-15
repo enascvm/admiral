@@ -175,7 +175,7 @@
     "replicationRules": "Правила репликации"
   },
   "projectRepositories": {
-      "containerDeploymentStarted": "Контейнеры начали развертываться. Дополнительные сведения см. в разделе "Запросы"."
+      "containerDeploymentStarted": "Контейнеры начали развертываться. Дополнительные сведения см. в разделе \"Запросы\"."
   },
   "clusters": {
     "title": "Кластеры",
@@ -192,7 +192,8 @@
       "WARNING": "ПРЕДУПРЕЖДЕНИЕ",
       "PROVISIONING": "ПОДГОТОВКА",
       "RESIZING": "ИЗМЕНЕНИЕ РАЗМЕРА",
-      "REMOVING": "УДАЛЕНИЕ"
+      "REMOVING": "УДАЛЕНИЕ",
+      "UNREACHABLE": "НЕДОСТУПЕН"
     },
     "search": {
       "placeholder": "Найти кластеры"
@@ -219,7 +220,7 @@
       "clusterResources": "Ресурсы кластера",
       "clusterResourcesVic": "Ресурсы узла контейнера",
       "status": "Состояние:",
-      "creationDate": "Создано:",
+      "creationDate": "Added:",
       "containersCount": "Контейнеры:",
       "cpu": "Виртуальные ЦП:",
       "memory": "Память:"
@@ -282,7 +283,7 @@
         "nameRequired": "Необходимо указать имя.",
         "description": "Описание",
         "url": "URL-адрес",
-        "urlRequired": "Необходимо указать URL-адрес кластера.",
+        "invalidUrl": "URL must contain a valid scheme and hostname.",
         "credentials": "Учетные данные"
       },
       "search": {
@@ -300,6 +301,7 @@
           "nodeCount": "Узлы:",
           "dashboard": "Панель мониторинга:",
           "planName": "План:",
+          "masterNodesIPs": "Основные IP-адреса:",
           "dashboardInstalled": "УСТАНОВЛЕНО",
           "dashboardNotInstalled": "НЕ УСТАНОВЛЕНО",
           "totalMemory": "Общий объем памяти:"
@@ -333,11 +335,9 @@
       },
       "item": {
         "creation": "Создано:",
-        "namespace": "Пространство имен
-:",
+        "namespace": "Пространство имен:",
         "containersNumber": "Контейнеры:",
-        "restartPolicy": "Политика перезапуска
-:",
+        "restartPolicy": "Политика перезапуска:",
         "strategy": "Стратегия:",
         "replicas": "Реплики:",
         "terminationGracePeriodSeconds": "Льготный период прерывания (в секундах):",
@@ -358,8 +358,7 @@
         },
         "item": {
             "creation": "Создано:",
-            "namespace": "Пространство имен
-:",
+            "namespace": "Пространство имен:",
             "containersNumber": "Контейнеры:",
             "status": "Состояние:",
             "startTime": "Запущено:",
@@ -386,8 +385,7 @@
       "item": {
         "summaryTitle": "Сводка",
         "creation": "Создано:",
-        "namespace": "Пространство имен
-:",
+        "namespace": "Пространство имен:",
         "ports": "Порты:"
       }
     }
@@ -402,9 +400,14 @@
         "nameFieldRequired": "Требуется указать имя кластера.",
         "fieldTitlePlan": " План",
         "fieldTitleMasterHostName": "Имя ведущего узла",
+        "masterHostNameFieldRequired": "Требуется указать имя главного узла",
         "fieldTitleMasterHostPort": "Порт ведущего узла",
+        "masterHostPortFieldRequired": "Требуется указать порт главного узла",
         "fieldTitleNumberNodes": "Узлы рабочих процессов",
-        "workerFieldRequired": "Поле рабочего процесса является обязательным. Можно ввести только целое число больше 0."
+        "workerFieldRequired": "Поле рабочего процесса является обязательным. Можно ввести только целое число больше 0.",
+        "fieldConnectBy": "Подключение по",
+        "labelConnectByHostname": "Имя главного узла",
+        "labelConnectByIP": "IP-адрес главного узла"
       }
     },
     "edit": {
@@ -413,19 +416,20 @@
     "add": {
       "title": "Добавить кластер",
       "existingClusters": {
-        "descriptionText": "Select an endpoint and then select one existing, unassigned Kubernetes cluster to add to the current business group.",
+        "descriptionText": "Выберите конечную точку, а затем укажите один существующий, неназначенный кластер Kubernetes для добавления к текущей бизнес-группе.",
         "fieldTitleEndpoint": "Конечная точка:",
         "columnTitleName": "Имя",
         "columnTitleHostname": "Имя узла",
+        "columnTitleMasterNodesIPs": "Основные IP-адреса",
         "columnTitleMastersCount": "Количество основных узлов",
         "columnTitleWorkersCount": "Количество рабочих процессов",
         "columnTitlePlan": " План",
-        "columnTitleLastAction": "Action",
-        "columnTitleLastActionStatus": "Status",
+        "columnTitleLastAction": "Последнее действие",
+        "columnTitleLastActionStatus": "Состояние последнего действия",
         "columnTitleInAdmiral": "Зарегистрирован",
-        "multipleSelectedClustersWarning": "Cannot add more than one cluster at a time.",
-        "clusterAlreadyRegisteredWarning": "Cannot add selected cluster. It is already added.",
-        "operationInProgressWarning": "Cannot add selected cluster. There is an operation in progress.",
+        "multipleSelectedClustersWarning": "Не удается добавить одновременно несколько кластеров.",
+        "clusterAlreadyRegisteredWarning": "Не удается добавить выбранный кластер, поскольку он уже добавлен.",
+        "operationInProgressWarning": "Не удается добавить выбранный кластер, поскольку в настоящее время выполняется операция.",
         "yes": "Да",
         "no": "Нет",
         "count": "Кластеры"
@@ -555,11 +559,41 @@
       "pksAddressFieldTitle": "PKS-адрес",
       "pksAddressRequired": "Необходимо указать PKS-адрес.",
       "testConnectionBtn": "Проверить подключение",
+      "assignmentsTabTitle": "Назначения планов",
+      "assignmentsPlansTitle": "Планы",
       "clustersTabTitle": "Кластеры",
       "connectionVerified": "Подключение к конечной точке успешно установлено.",
       "certificateNotAccepted": "Сертификат не будет принят. Невозможно продолжить.",
       "assignToProjects": "Назначить проектам",
       "assignToGroups": "Назначить группам"
+    }
+  },
+  "requests": {
+    "title": "Запросы",
+    "columnContextId": "Контекстный идентификатор",
+    "columnPhase": "Этап",
+    "columnRequest": "Запрос",
+    "columnDetails": "Сведения",
+    "count": "Отображение последних запросов ({{number}})",
+    "error": "Ошибка",
+    "eventLogLink": "Перейти к журналу событий",
+    "containerLink": "Перейти к контейнеру",
+    "compositeComponentLink": "Перейти к приложению",
+    "containerNetworkLink": "Перейти к сети",
+    "containerVolumeLink": "Перейти к тому",
+    "deleteRequest": {
+      "title": "Удалить запрос",
+      "description": "Подтвердите удаление выбранных запросов. Это действие невозможно отменить."
+    }
+  },
+  "eventLogs": {
+    "title": "Журналы событий",
+    "columnDescription": "Описание",
+    "columnTimestamp": "Время",
+    "count": "Отображение последних журналов событий ({{number}})",
+    "deleteEventLog": {
+      "title": "Удалить журнал событий",
+      "description": "Подтвердите удаление выбранных журналов событий. Это действие невозможно отменить."
     }
   },
   "configuration": {
@@ -641,7 +675,10 @@
     "configuration": "Конфигурация",
     "logs": "Журналы",
     "endpoints": "Конечные точки",
-    "pksEndpoints": "Конечные точки PKS"
+    "pksEndpoints": "Конечные точки PKS",
+    "recentActivity": "Последние действия",
+    "requests": "Запросы",
+    "eventLogs": "Журналы событий"
   },
   "search": {
     "occurrence": {

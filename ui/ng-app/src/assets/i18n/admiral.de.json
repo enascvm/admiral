@@ -192,7 +192,8 @@
       "WARNING": "WARNUNG",
       "PROVISIONING": "BEREITSTELLUNG",
       "RESIZING": "ÄNDERN DER GRÖSSE",
-      "REMOVING": "ENTFERNEN"
+      "REMOVING": "ENTFERNEN",
+      "UNREACHABLE": "UNERREICHBAR"
     },
     "search": {
       "placeholder": "Nach Clustern suchen"
@@ -219,7 +220,7 @@
       "clusterResources": "Clusterressourcen",
       "clusterResourcesVic": "Container-Host-Ressourcen",
       "status": "Status:",
-      "creationDate": "Erstellt:",
+      "creationDate": "Added:",
       "containersCount": "Container:",
       "cpu": "vCPU:",
       "memory": "Arbeitsspeicher:"
@@ -282,7 +283,7 @@
         "nameRequired": "Der Name ist erforderlich.",
         "description": "Beschreibung",
         "url": "URL",
-        "urlRequired": "Die Cluster-URL ist erforderlich.",
+        "invalidUrl": "URL must contain a valid scheme and hostname.",
         "credentials": "Anmeldedaten"
       },
       "search": {
@@ -300,6 +301,7 @@
           "nodeCount": "Knoten:",
           "dashboard": "Dashboard:",
           "planName": "Plan:",
+          "masterNodesIPs": "Master-IPs:",
           "dashboardInstalled": "INSTALLIERT",
           "dashboardNotInstalled": "NICHT INSTALLIERT",
           "totalMemory": "Arbeitsspeicher insgesamt:"
@@ -398,9 +400,14 @@
         "nameFieldRequired": "Clustername ist erforderlich.",
         "fieldTitlePlan": "Plan",
         "fieldTitleMasterHostName": "Master-Hostname",
+        "masterHostNameFieldRequired": "Master-Hostname ist erforderlich",
         "fieldTitleMasterHostPort": "Master-Hostport",
+        "masterHostPortFieldRequired": "Master-Hostport ist erforderlich",
         "fieldTitleNumberNodes": "Worker-Knoten",
-        "workerFieldRequired": "Worker-Feld ist erforderlich. Nur Ganzzahlwerte größer 0 können eingegeben werden."
+        "workerFieldRequired": "Worker-Feld ist erforderlich. Nur Ganzzahlwerte größer 0 können eingegeben werden.",
+        "fieldConnectBy": "Verbinden via",
+        "labelConnectByHostname": "Master-Hostname",
+        "labelConnectByIP": "Masterknoten-IP"
       }
     },
     "edit": {
@@ -409,19 +416,20 @@
     "add": {
       "title": "Cluster hinzufügen",
       "existingClusters": {
-        "descriptionText": "Select an endpoint and then select one existing, unassigned Kubernetes cluster to add to the current business group.",
+        "descriptionText": "Wählen Sie einen Endpoint und dann einen vorhandenen, nicht zugewiesenen Kubernetes-Cluster aus, der zur aktuellen Business-Gruppe hinzugefügt wird.",
         "fieldTitleEndpoint": "Endpoint:",
         "columnTitleName": "Name",
         "columnTitleHostname": "Hostname",
+        "columnTitleMasterNodesIPs": "Master-IPs",
         "columnTitleMastersCount": "Anz. Master",
         "columnTitleWorkersCount": "Anz. Worker",
         "columnTitlePlan": "Plan",
-        "columnTitleLastAction": "Action",
-        "columnTitleLastActionStatus": "Status",
+        "columnTitleLastAction": "Letzte Aktion",
+        "columnTitleLastActionStatus": "Letzter Aktionsstatus",
         "columnTitleInAdmiral": "Registriert",
-        "multipleSelectedClustersWarning": "Cannot add more than one cluster at a time.",
-        "clusterAlreadyRegisteredWarning": "Cannot add selected cluster. It is already added.",
-        "operationInProgressWarning": "Cannot add selected cluster. There is an operation in progress.",
+        "multipleSelectedClustersWarning": "Es kann nicht mehr als ein Cluster gleichzeitig hinzugefügt werden.",
+        "clusterAlreadyRegisteredWarning": "Der ausgewählte Cluster kann nicht hinzugefügt werden. Er wurde bereits hinzugefügt.",
+        "operationInProgressWarning": "Der ausgewählte Cluster kann nicht hinzugefügt werden. Ein Vorgang ist in Bearbeitung.",
         "yes": "Ja",
         "no": "Nein",
         "count": "Cluster"
@@ -551,11 +559,41 @@
       "pksAddressFieldTitle": "PKS-Adresse",
       "pksAddressRequired": "Die PKS-Adresse ist erforderlich.",
       "testConnectionBtn": "Verbindung testen",
+      "assignmentsTabTitle": "Planzuweisungen",
+      "assignmentsPlansTitle": "Pläne",
       "clustersTabTitle": "Cluster",
       "connectionVerified": "Verbindung zu Endpoint war erfolgreich.",
       "certificateNotAccepted": "Das Zertifikat wurde nicht akzeptiert. Fortfahren nicht möglich.",
       "assignToProjects": "Zu Projekten zuweisen",
       "assignToGroups": "Zu Gruppen zuweisen"
+    }
+  },
+  "requests": {
+    "title": "Anforderungen",
+    "columnContextId": "Kontext-ID",
+    "columnPhase": "Phase",
+    "columnRequest": "Anfordern",
+    "columnDetails": "Details",
+    "count": "Die letzten {{number}} Anforderungen werden angezeigt",
+    "error": "Fehler",
+    "eventLogLink": "Zu Ereignisprotokoll wechseln",
+    "containerLink": "Zu Container wechseln",
+    "compositeComponentLink": "Zu Anwendung wechseln",
+    "containerNetworkLink": "Zu Netzwerk wechseln",
+    "containerVolumeLink": "Zu Volume wechseln",
+    "deleteRequest": {
+      "title": "Anforderung entfernen",
+      "description": "Bestätigen Sie die Entfernung der ausgewählten Anforderungen. Der Vorgang kann nicht rückgängig gemacht werden."
+    }
+  },
+  "eventLogs": {
+    "title": "Ereignisprotokolle",
+    "columnDescription": "Beschreibung",
+    "columnTimestamp": "Uhrzeit",
+    "count": "Die letzten {{number}} Ereignisprotokolle werden angezeigt",
+    "deleteEventLog": {
+      "title": "Ereignisprotokoll entfernen",
+      "description": "Bestätigen Sie die Entfernung der ausgewählten Ereignisprotokolle. Der Vorgang kann nicht rückgängig gemacht werden."
     }
   },
   "configuration": {
@@ -637,7 +675,10 @@
     "configuration": "Konfiguration",
     "logs": "Protokolle",
     "endpoints": "Endpoints",
-    "pksEndpoints": "PKS-Endpoints"
+    "pksEndpoints": "PKS-Endpoints",
+    "recentActivity": "Letzte Aktivität",
+    "requests": "Anforderungen",
+    "eventLogs": "Ereignisprotokolle"
   },
   "search": {
     "occurrence": {

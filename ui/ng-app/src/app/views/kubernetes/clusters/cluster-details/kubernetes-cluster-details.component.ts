@@ -9,12 +9,12 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  */
 
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import 'rxjs/add/operator/switchMap';
 import { BaseDetailsComponent } from '../../../../components/base/base-details.component';
 import { DocumentService } from '../../../../utils/document.service';
 import { ErrorService } from "../../../../utils/error.service";
+import { ProjectService } from '../../../../utils/project.service';
 import { Links } from '../../../../utils/links';
 
 @Component({
@@ -22,14 +22,18 @@ import { Links } from '../../../../utils/links';
   templateUrl: './kubernetes-cluster-details.component.html',
   styleUrls: ['./kubernetes-cluster-details.component.scss']
 })
-export class KubernetesClusterDetailsComponent extends BaseDetailsComponent
-                                               implements OnInit, OnDestroy {
+/**
+ * Kubernetes cluster details view.
+ */
+export class KubernetesClusterDetailsComponent extends BaseDetailsComponent {
 
   constructor(route: ActivatedRoute, router: Router, service: DocumentService,
-              errorService: ErrorService) {
-    super(Links.CLUSTERS, route, router, service, errorService);
+              errorService: ErrorService, projectService: ProjectService) {
+
+    super(Links.CLUSTERS, route, router, service, projectService, errorService);
   }
 
-  protected entityInitialized() {
+  protected onProjectChange() {
+      this.router.navigate(['../../'], {relativeTo: this.route});
   }
 }

@@ -192,7 +192,8 @@
       "WARNING": "ADVERTENCIA",
       "PROVISIONING": "APROVISIONAMIENTO",
       "RESIZING": "CAMBIO DE TAMAÑO",
-      "REMOVING": "ELIMINACIÓN"
+      "REMOVING": "ELIMINACIÓN",
+      "UNREACHABLE": "NO ACCESIBLE"
     },
     "search": {
       "placeholder": "Buscar clústeres"
@@ -219,7 +220,7 @@
       "clusterResources": "Recursos del clúster",
       "clusterResourcesVic": "Recursos del host de contenedor",
       "status": "Estado:",
-      "creationDate": "Creación:",
+      "creationDate": "Added:",
       "containersCount": "Contenedores:",
       "cpu": "vCPU:",
       "memory": "Memoria:"
@@ -282,7 +283,7 @@
         "nameRequired": "El nombre es obligatorio.",
         "description": "Descripción",
         "url": "URL",
-        "urlRequired": "La dirección URL del clúster es obligatoria.",
+        "invalidUrl": "URL must contain a valid scheme and hostname.",
         "credentials": "Credenciales"
       },
       "search": {
@@ -300,6 +301,7 @@
           "nodeCount": "Nodos:",
           "dashboard": "Panel de control:",
           "planName": "Plan:",
+          "masterNodesIPs": "Direcciones IP principales:",
           "dashboardInstalled": "INSTALADO",
           "dashboardNotInstalled": "NO INSTALADO",
           "totalMemory": "Memoria total:"
@@ -398,9 +400,14 @@
         "nameFieldRequired": "Se requiere el nombre del clúster.",
         "fieldTitlePlan": "Plan",
         "fieldTitleMasterHostName": "Nombre de host principal",
+        "masterHostNameFieldRequired": "El nombre de host principal es obligatorio.",
         "fieldTitleMasterHostPort": "Puerto de host principal",
+        "masterHostPortFieldRequired": "El puerto de host principal es obligatorio.",
         "fieldTitleNumberNodes": "Nodos de trabajo",
-        "workerFieldRequired": "Se requiere el campo de trabajo. Únicamente se pueden introducir valores enteros superiores a 0."
+        "workerFieldRequired": "Se requiere el campo de trabajo. Únicamente se pueden introducir valores enteros superiores a 0.",
+        "fieldConnectBy": "Conectar mediante",
+        "labelConnectByHostname": "Nombre de host principal",
+        "labelConnectByIP": "IP del nodo principal"
       }
     },
     "edit": {
@@ -409,19 +416,20 @@
     "add": {
       "title": "Agregar clúster",
       "existingClusters": {
-        "descriptionText": "Select an endpoint and then select one existing, unassigned Kubernetes cluster to add to the current business group.",
+        "descriptionText": "Seleccione un endpoint y, a continuación, seleccione un clúster de Kubernetes existente sin asignar para agregarlo al grupo empresarial actual.",
         "fieldTitleEndpoint": "Endpoint:",
         "columnTitleName": "Nombre",
         "columnTitleHostname": "Nombre de host",
+        "columnTitleMasterNodesIPs": "Direcciones IP principales",
         "columnTitleMastersCount": "Número de maestros",
         "columnTitleWorkersCount": "Número de trabajadores",
         "columnTitlePlan": "Plan",
-        "columnTitleLastAction": "Action",
-        "columnTitleLastActionStatus": "Status",
+        "columnTitleLastAction": "Última acción",
+        "columnTitleLastActionStatus": "Estado de la última acción",
         "columnTitleInAdmiral": "Registrado",
-        "multipleSelectedClustersWarning": "Cannot add more than one cluster at a time.",
-        "clusterAlreadyRegisteredWarning": "Cannot add selected cluster. It is already added.",
-        "operationInProgressWarning": "Cannot add selected cluster. There is an operation in progress.",
+        "multipleSelectedClustersWarning": "No se puede agregar más de un clúster a la vez.",
+        "clusterAlreadyRegisteredWarning": "No se puede agregar el clúster seleccionado debido a que ya se ha agregado.",
+        "operationInProgressWarning": "No se puede agregar el clúster seleccionado debido a que hay una operación en curso.",
         "yes": "Sí",
         "no": "No",
         "count": "Clústeres"
@@ -551,11 +559,41 @@
       "pksAddressFieldTitle": "Dirección PKS",
       "pksAddressRequired": "La dirección PKS es obligatoria.",
       "testConnectionBtn": "Probar conexión",
+      "assignmentsTabTitle": "Asignaciones de plan",
+      "assignmentsPlansTitle": "Planes",
       "clustersTabTitle": "Clústeres",
       "connectionVerified": "La conexión con el endpoint se ha realizado correctamente.",
       "certificateNotAccepted": "No se acepta el certificado. No se puede continuar.",
       "assignToProjects": "Asignar a proyectos",
       "assignToGroups": "Asignar a grupos"
+    }
+  },
+  "requests": {
+    "title": "Solicitudes",
+    "columnContextId": "Identificador contextual",
+    "columnPhase": "Fase",
+    "columnRequest": "Solicitud",
+    "columnDetails": "Detalles",
+    "count": "Mostrando las {{number}} solicitudes más recientes",
+    "error": "Error",
+    "eventLogLink": "Ir a log de eventos",
+    "containerLink": "Ir a contenedor",
+    "compositeComponentLink": "Ir a aplicación",
+    "containerNetworkLink": "Ir a red",
+    "containerVolumeLink": "Ir a volumen",
+    "deleteRequest": {
+      "title": "Quitar solicitud",
+      "description": "Confirme la eliminación de las solicitudes seleccionadas. La operación no se puede deshacer."
+    }
+  },
+  "eventLogs": {
+    "title": "Logs de eventos",
+    "columnDescription": "Descripción",
+    "columnTimestamp": "Hora",
+    "count": "Mostrando los {{number}} logs de eventos más recientes",
+    "deleteEventLog": {
+      "title": "Quitar log de eventos",
+      "description": "Confirme la eliminación de los logs de eventos seleccionados. La operación no se puede deshacer."
     }
   },
   "configuration": {
@@ -637,7 +675,10 @@
     "configuration": "Configuración",
     "logs": "Logs",
     "endpoints": "Endpoints",
-    "pksEndpoints": "Endpoints PKS"
+    "pksEndpoints": "Endpoints PKS",
+    "recentActivity": "Actividad reciente",
+    "requests": "Solicitudes",
+    "eventLogs": "Logs de eventos"
   },
   "search": {
     "occurrence": {

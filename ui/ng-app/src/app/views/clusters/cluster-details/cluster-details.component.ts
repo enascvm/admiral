@@ -9,12 +9,12 @@
  * conditions of the subcomponent's license, as noted in the LICENSE file.
  */
 
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import 'rxjs/add/operator/switchMap';
 import { BaseDetailsComponent } from '../../../components/base/base-details.component';
 import { DocumentService } from '../../../utils/document.service';
 import { ErrorService } from "../../../utils/error.service";
+import { ProjectService } from '../../../utils/project.service';
 import { Links } from '../../../utils/links';
 
 @Component({
@@ -22,32 +22,18 @@ import { Links } from '../../../utils/links';
   templateUrl: './cluster-details.component.html',
   styleUrls: ['./cluster-details.component.scss']
 })
-export class ClusterDetailsComponent extends BaseDetailsComponent
-                                     implements OnInit, OnDestroy {
+export class ClusterDetailsComponent extends BaseDetailsComponent {
 
-  private sub: any;
   private resourceTabSelected:boolean = false;
 
   constructor(route: ActivatedRoute, router: Router, service: DocumentService,
-              errorService: ErrorService) {
-    super(Links.CLUSTERS, route, router, service, errorService);
+              errorService: ErrorService, projectService: ProjectService) {
+
+      super(Links.CLUSTERS, route, router, service, projectService, errorService);
   }
 
-  ngOnInit() {
-    this.sub = this.route.params.subscribe(params => {
-      let projectId = params['projectId'];
-      if (projectId) {
-        this.projectLink = Links.PROJECTS + '/' + projectId;
-      }
-      super.ngOnInit();
-    });
-  }
-
-  ngOnDestroy() {
-    this.sub.unsubscribe();
-  }
-
-  protected entityInitialized() {
+  protected onProjectChange() {
+      this.router.navigate(['../../'], {relativeTo: this.route});
   }
 
   get showBackLink() {
@@ -69,15 +55,16 @@ export class ClusterDetailsComponent extends BaseDetailsComponent
   }
 
   reloadCluster() {
-    this.service.get(this.entity.documentSelfLink, false, this.projectLink).then(cluster => {
+    this.service.get(this.entity.documentSelfLink, false).then(cluster => {
       this.entity = cluster;
     });
   }
-    clickedSummaryTab() {
-        this.resourceTabSelected = false;
-    }
 
-    clickedResourcesTab() {
-        this.resourceTabSelected = true;
-    }
+  clickedSummaryTab() {
+      this.resourceTabSelected = false;
+  }
+
+  clickedResourcesTab() {
+      this.resourceTabSelected = true;
+  }
 }

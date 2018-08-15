@@ -14,6 +14,7 @@ import { Constants } from './constants';
 import { ConfigUtils } from './config-utils';
 import { FT } from './ft';
 import { Roles } from './roles';
+import { ProjectService } from './project.service';
 
 const LOGIN_PATH="/login/";
 
@@ -96,6 +97,10 @@ export class Utils {
 
   public static isSingleHostCluster(clusterEntity) {
     return clusterEntity && clusterEntity.type === Constants.hosts.type.VCH;
+  }
+
+  public static isPksCluster(cluster) {
+    return cluster && cluster.type === "KUBERNETES";
   }
 
   public static getErrorMessage(err) {
@@ -404,8 +409,8 @@ export class Utils {
   }
 
   public static isContainerDeveloper(securityContext) {
-    return securityContext && securityContext.indexOf(Roles.VRA_CONTAINER_DEVELOPER) > -1 &&
-                securityContext.indexOf(Roles.VRA_CONTAINER_ADMIN) == -1;
+    return securityContext && securityContext.indexOf(Roles.VRA_CONTAINER_DEVELOPER) > -1
+                           && securityContext.indexOf(Roles.VRA_CONTAINER_ADMIN) == -1;
   }
 
   public static hasSystemRole(securityContext, roles) {
@@ -415,14 +420,22 @@ export class Utils {
       return false;
     }
 
-    for (var i = 0; i < roles.length; i += 1) {
-      let role = roles[i];
-      if (securityContextRoles && securityContextRoles.indexOf(role) > -1) {
-          return true;
-      }
-    }
+    let match = roles.find(role => securityContextRoles.indexOf(role) > -1);
 
-    return false;
+    return !!match;
+  }
+
+  public static subscribeForProjectChange(projectService: ProjectService, callback) {
+      projectService.activeProject.subscribe((value) => {
+        let changedProjectLink;
+        if (value && value.documentSelfLink) {
+            changedProjectLink = value.documentSelfLink;
+        } else if (value && value.id) {
+            changedProjectLink = value.id;
+        }
+
+        callback(changedProjectLink);
+      });
   }
 }
 

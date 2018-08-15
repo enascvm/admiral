@@ -97,7 +97,6 @@ public class ContainerVolumeRemovalTaskService extends
         super.toggleOption(ServiceOption.PERSISTENCE, true);
         super.toggleOption(ServiceOption.REPLICATION, true);
         super.toggleOption(ServiceOption.OWNER_SELECTION, true);
-        super.toggleOption(ServiceOption.INSTRUMENTATION, true);
         super.transientSubStages = SubStage.TRANSIENT_SUB_STAGES;
     }
 
@@ -128,11 +127,8 @@ public class ContainerVolumeRemovalTaskService extends
     @Override
     protected TaskStatusState fromTask(TaskServiceDocument<SubStage> state) {
         TaskStatusState statusTask = super.fromTask(state);
-        if (SubStage.INSTANCES_REMOVED == state.taskSubStage
-                || SubStage.COMPLETED == state.taskSubStage) {
-            statusTask.name = VolumeOperationType
-                    .extractDisplayName(VolumeOperationType.DELETE.id);
-        }
+        statusTask.name = VolumeOperationType
+                .extractDisplayName(VolumeOperationType.DELETE.id);
         return statusTask;
     }
 

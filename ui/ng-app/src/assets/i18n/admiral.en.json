@@ -192,7 +192,7 @@
       "WARNING": "WARNING",
       "PROVISIONING": "PROVISIONING",
       "RESIZING": "RESIZING",
-      "REMOVING": "REMOVING",
+      "DESTROYING": "DESTROYING",
       "UNREACHABLE": "UNREACHABLE"
     },
     "search": {
@@ -217,7 +217,7 @@
       "clusterResources": "Cluster Resources",
       "clusterResourcesVic": "Container Host Resources",
       "status": "Status:",
-      "creationDate": "Created:",
+      "creationDate": "Added:",
       "containersCount": "Containers:",
       "cpu": "vCPU:",
       "memory": "Memory:"
@@ -280,7 +280,7 @@
         "nameRequired": "Name is required.",
         "description": "Description",
         "url": "URL",
-        "urlRequired": "Cluster URL is required.",
+        "invalidUrl": "URL must contain a valid scheme and hostname.",
         "credentials": "Credentials"
       },
       "search": {
@@ -298,8 +298,10 @@
           "nodeCount": "Nodes:",
           "dashboard": "Dashboard:",
           "planName": "Plan:",
+          "masterNodesIPs": "Master IPs:",
           "dashboardInstalled": "INSTALLED",
           "dashboardNotInstalled": "NOT INSTALLED",
+          "dashboardTooltip": "You may access the Dashboard UI via browser if the Kubernetes API Server is set up to allow authentication with username and password.",
           "totalMemory": "Total Memory:"
         },
         "nodes": {
@@ -413,9 +415,10 @@
       "title": "Add Cluster",
       "existingClusters": {
         "descriptionText": "Select an endpoint and then select one existing, unassigned Kubernetes cluster to add to the current business group.",
-        "fieldTitleEndpoint": "Endpoint:",
+        "fieldTitleEndpoint": "PKS Endpoint",
         "columnTitleName": "Name",
         "columnTitleHostname": "Hostname",
+        "columnTitleMasterNodesIPs": "Master IPs",
         "columnTitleMastersCount": "# Masters",
         "columnTitleWorkersCount": "# Workers",
         "columnTitlePlan": "Plan",
@@ -683,10 +686,10 @@
     "count": "Showing latest {{number}} requests",
     "error": "Error",
     "eventLogLink": "Go to event log",
-    "containerLink": "Go to container",
-    "compositeComponentLink": "Go to application",
-    "containerNetworkLink": "Go to network",
-    "containerVolumeLink": "Go to volume",
+    "containerLink": "Go to containers",
+    "compositeComponentLink": "Go to applications",
+    "containerNetworkLink": "Go to networks",
+    "containerVolumeLink": "Go to volumes",
     "deleteRequest": {
       "title": "Remove request",
       "description": "Confirm the removal of the selected requests. The operation cannot be undone."
@@ -746,6 +749,7 @@
   "unmakeAdmin": "Unassign Admin Role",
   "noItems": "No items",
   "reload": "Reload",
+  "loading": "Loading ...",
   "notAvailable": "N/A",
   "selectAll": "Select All",
   "sessionExpired": "Your session is no longer valid, please log in again!",
@@ -770,7 +774,7 @@
     "internalRepositories": "Built-in Repositories",
     "publicRepositories": "Repositories",
     "infrastructure": "Infrastructure",
-    "clusters": "Clusters",
+    "clusters": "Container Host Clusters",
     "clustersVic": "Container Hosts",
     "kubernetesClusters": "PKS Clusters",
     "hosts": "Hosts",
