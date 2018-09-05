@@ -15,11 +15,14 @@ import { AutoRefreshComponent } from '../../../components/base/auto-refresh.comp
 import { GridViewComponent } from '../../../components/grid-view/grid-view.component';
 import { DocumentService } from '../../../utils/document.service';
 import { ProjectService } from "../../../utils/project.service";
+import { AuthService } from '../../../utils/auth.service';
+import { ErrorService } from '../../../utils/error.service';
 import { RoutesRestriction } from '../../../utils/routes-restriction';
 import { Constants } from '../../../utils/constants';
 import { FT } from '../../../utils/ft';
 import { Utils } from '../../../utils/utils';
 import { Links } from '../../../utils/links';
+
 
 import * as I18n from 'i18next';
 
@@ -34,6 +37,8 @@ import * as I18n from 'i18next';
 export class KubernetesClustersComponent extends AutoRefreshComponent {
     @ViewChild('gridView') gridView: GridViewComponent;
 
+    private userSecurityContext: any;
+
     projectLink: string;
 
     serviceEndpoint = Links.CLUSTERS + '?type=KUBERNETES';
@@ -45,13 +50,21 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
     deleteConfirmationError: string;
 
     constructor(protected service: DocumentService, protected projectService: ProjectService,
-                protected router: Router, protected route: ActivatedRoute) {
+                protected router: Router, protected route: ActivatedRoute,
+                protected authService: AuthService, protected errorService: ErrorService) {
 
         super(router, route, FT.allowHostEventsSubscription(),
                 Utils.getClustersViewRefreshInterval(), true);
 
         Utils.subscribeForProjectChange(projectService, (changedProjectLink) => {
             this.projectLink = changedProjectLink;
+        });
+
+        authService.getCachedSecurityContext().then((securityContext) => {
+            this.userSecurityContext = securityContext;
+        }).catch((error) => {
+            console.log(error);
+            this.errorService.error(Utils.getErrorMessage(error)._generic);
         });
     }
 
@@ -71,6 +84,13 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
                 if (me.operationSupported('DESTROY', itemVal)) {
                     itemVal.supportsOperationDestroy = true;
                 }
+                if (me.operationSupported('RESCAN', itemVal)) {
+                    itemVal.supportsOperationRescan = true;
+                }
+
+                if (me.operationSupported('REMOVE', itemVal)) {
+                    itemVal.supportsOperationRemove = true;
+                }
 
                 return itemVal;
             });
@@ -86,10 +106,15 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
     }
 
     get deleteOpTitle() {
+        let key = this.deleteOp === 'REMOVE'
+            ? 'kubernetes.clusters.delete.title'
+            : 'kubernetes.clusters.destroy.title';
+
         return this.deleteOpClusterName
-            && (this.deleteOp === 'REMOVE'
-                    ? I18n.t('kubernetes.clusters.remove.title')
-                    : I18n.t('kubernetes.clusters.destroy.title'));
+            && I18n.t(key, {
+                        clusterName: this.deleteOpClusterName,
+                        interpolation: {escapeValue: false}
+                    } as I18n.TranslationOptions);
     }
 
     get deleteOpConfirmationDescription(): string {
@@ -98,24 +123,22 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
             return description;
         }
 
-        if (this.deleteOp === 'REMOVE') {
-            description = I18n.t('kubernetes.clusters.remove.confirmation', {
-                clusterName: this.deleteOpClusterName,
-                interpolation: { escapeValue: false }
-            } as I18n.TranslationOptions)
+        let key = this.deleteOp === 'REMOVE'
+            ? 'kubernetes.clusters.delete.confirmation'
+            : 'kubernetes.clusters.destroy.confirmation';
 
-        } else if (this.deleteOp === 'DESTROY') {
-            description = I18n.t('kubernetes.clusters.destroy.confirmation', {
-                clusterName: this.deleteOpClusterName,
-                interpolation: { escapeValue: false }
-            } as I18n.TranslationOptions);
-        }
+        description = I18n.t(key, {
+            clusterName: this.deleteOpClusterName,
+            interpolation: { escapeValue: false }
+        } as I18n.TranslationOptions);
 
         return description;
     }
 
     get deleteOpConfirmationBtnTextKey(): string {
-        return (this.deleteOp === 'DESTROY') && 'destroy';
+        return this.deleteOp === 'REMOVE'
+            ? I18n.t('delete')
+            : I18n.t('destroy');
     }
 
     hasNodes(cluster) {
@@ -164,7 +187,6 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
 
     removeCluster(event, cluster) {
         this.setDeleteOperation('REMOVE', cluster);
-
         event.stopPropagation();
         // clear selection
         this.selectedItem = null;
@@ -252,19 +274,39 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
     operationSupported(op, cluster) {
         let clusterStatus = cluster.status;
 
+        let isClusterOwnedByCurrentUser = this.isClusterOwnedByCurrentUser(cluster);
+
         if (op === 'ENABLE') {
             // Enable
-            return clusterStatus === Constants.clusters.status.DISABLED;
+            return clusterStatus === Constants.clusters.status.DISABLED && isClusterOwnedByCurrentUser;
         } else if (op === 'DISABLE') {
             // Disable
-            return clusterStatus === Constants.clusters.status.ON;
+            return clusterStatus === Constants.clusters.status.ON && isClusterOwnedByCurrentUser;
         } else if (op === 'DESTROY') {
             // Destroy
             return Utils.isPksCluster(cluster)
                     && clusterStatus !== Constants.clusters.status.PROVISIONING
                     && clusterStatus !== Constants.clusters.status.RESIZING
                     && clusterStatus !== Constants.clusters.status.DESTROYING
-                    && clusterStatus !== Constants.clusters.status.UNREACHABLE;
+                    && clusterStatus !== Constants.clusters.status.UNREACHABLE
+                    && isClusterOwnedByCurrentUser;
+        } else if (op === 'REMOVE') {
+            return isClusterOwnedByCurrentUser;
+        }
+
+        return true;
+    }
+
+    isClusterOwnedByCurrentUser(cluster) {
+        let nodes = cluster.nodes;
+        if (nodes && Utils.isContainerDeveloper(this.userSecurityContext)) {
+            let user = this.userSecurityContext.user;
+            for (var key in nodes) {
+                let tenantLinks = nodes[key] && nodes[key].tenantLinks;
+                if (tenantLinks.indexOf('/users/' + user) === -1) {
+                    return false;
+                }
+            }
         }
 
         return true;
@@ -327,5 +369,45 @@ export class KubernetesClustersComponent extends AutoRefreshComponent {
 
     get addClusterRouteRestriction() {
         return RoutesRestriction.KUBERNETES_CLUSTERS_ADD;
+    }
+
+    rescanCluster(event, cluster) {
+        event.stopPropagation();
+        // clear selection
+        this.selectedItem = null;
+
+        this.service.get(cluster.documentSelfLink + '/hosts')
+        .then((clusterHostsResult) => {
+            this.gridView.refresh();
+
+            let computeContainerHostLinks = [];
+
+            if (FT.isApplicationEmbedded()) {
+                clusterHostsResult.content.forEach(element => {
+                    computeContainerHostLinks.push(element.documentSelfLink);
+                });
+            } else {
+                computeContainerHostLinks = clusterHostsResult.documentLinks;
+            }
+
+            let clusterHostsLinks = {
+                computeContainerHostLinks: computeContainerHostLinks,
+                noHostOperation: true
+            };
+            // start hosts data collection
+            this.service.patch(Links.HOST_DATA_COLLECTION, clusterHostsLinks, this.projectLink)
+            .then((response) => {
+            }).catch(error => {
+                console.error('Rescan of cluster failed', Utils.getErrorMessage(error)._generic);
+                this.errorService.error(Utils.getErrorMessage(error)._generic);
+            });
+
+        }).catch(error => {
+            console.error('Cannot retrieve cluster resources',
+                                                            Utils.getErrorMessage(error)._generic);
+            this.errorService.error(Utils.getErrorMessage(error)._generic);
+        });
+
+        return false; // prevents navigation
     }
 }

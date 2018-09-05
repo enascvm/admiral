@@ -100,7 +100,15 @@ export class Utils {
   }
 
   public static isPksCluster(cluster) {
-    return cluster && cluster.type === "KUBERNETES";
+    return cluster && cluster.type === "KUBERNETES" && this.getEndpointLink(cluster);
+  }
+
+  public static getEndpointLink(cluster) {
+      let clusterData = cluster.nodeLinks && cluster.nodeLinks.length > 0
+          && cluster.nodes && cluster.nodes[cluster.nodeLinks[0]];
+      let clusterProperties = clusterData && clusterData.customProperties;
+
+      return Utils.getCustomPropertyValue(clusterProperties, '__pksEndpoint');
   }
 
   public static getErrorMessage(err) {
@@ -409,12 +417,14 @@ export class Utils {
   }
 
   public static isContainerDeveloper(securityContext) {
-    return securityContext && securityContext.indexOf(Roles.VRA_CONTAINER_DEVELOPER) > -1
-                           && securityContext.indexOf(Roles.VRA_CONTAINER_ADMIN) == -1;
+    let roles = securityContext && securityContext.roles;
+
+    return roles && roles.indexOf(Roles.VRA_CONTAINER_DEVELOPER) > -1
+        && roles.indexOf(Roles.VRA_CONTAINER_ADMIN) == -1;
   }
 
   public static hasSystemRole(securityContext, roles) {
-    let securityContextRoles = FT.isApplicationEmbedded() ? securityContext : securityContext.roles;
+    let securityContextRoles = securityContext.roles;
 
     if (!securityContextRoles || !roles) {
       return false;

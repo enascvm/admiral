@@ -31,6 +31,7 @@ import { FT } from './../../utils/ft';
 export class MainResourcesComponent implements OnInit, OnDestroy {
     // features
     embeddedMode = FT.isApplicationEmbedded();
+    isVic = FT.isVic();
 
     isPksEnabled = FT.isPksEnabled();
     externalKubernetesEnabled = FT.isExternalKubernetesEnabled();
@@ -180,6 +181,7 @@ export class MainResourcesComponent implements OnInit, OnDestroy {
     checkShowKubernetes() {
       if (FT.isApplicationEmbedded() && FT.isPksEnabled()) {
         this.authService.getCachedSecurityContext().then(securityContext => {
+
           // check if the user is only container developer
           this.showKubernetes = Utils.isContainerDeveloper(securityContext);
         });

@@ -78,6 +78,9 @@ public class PKSClusterProvisioningTaskService extends
     private static final int MAX_POLL_FAILURES = Integer.getInteger(
             "com.vmware.admiral.request.pks.poll.max.failures", 10);
 
+    public static final boolean DESTROY_CLUSTERS_AFTER_FAILED_PROVISION =
+            Boolean.getBoolean("com.vmware.admiral.request.pks.provision.destroy.failed");
+
     static final String INVALID_PLAN_SELECTION_MESSAGE_FORMAT = "Plan selection [%s] is not valid in the context of PKS cluster provisioning task [%s]";
 
     protected static class CallbackCompleteResponse extends ServiceTaskCallbackResponse {
@@ -395,7 +398,7 @@ public class PKSClusterProvisioningTaskService extends
                     if (e != null) {
                         // in case of connection exception do nothing, will try to contact the
                         // cluster later, else fail the provision request
-                        if (!isConnectionException(e)) {
+                        if (!isConnectionException(e) && !isLocalizableValidationException(e)) {
                             failTask("Failed to add PKS cluster: " + e.getMessage(), e);
                         }
                         markClusterUnreachable(task);
@@ -433,4 +436,14 @@ public class PKSClusterProvisioningTaskService extends
         return e instanceof IOException || e.getCause() instanceof IOException;
     }
 
+    /**
+     * Check if exception is about failure to import ssl certificate and not about
+     * core xenon failures
+     *
+     * @param e exception
+     */
+    private boolean isLocalizableValidationException(Throwable e) {
+        return e instanceof LocalizableValidationException
+                || e.getCause() instanceof LocalizableValidationException;
+    }
 }

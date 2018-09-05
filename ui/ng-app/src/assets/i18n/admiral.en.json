@@ -306,7 +306,6 @@
         },
         "nodes": {
           "title": "Nodes",
-          "searchPlaceholder": "Search for nodes",
           "nameColumn": "Name",
           "cpuCountColumn": "# CPUs",
           "totalMemoryColumn": "Total Memory",
@@ -317,12 +316,12 @@
           "count": "nodes"
         }
       },
-      "remove": {
-        "title": "Remove Cluster",
-        "confirmation": "Confirm removing of cluster {{clusterName}}. The deployed entities associated to this cluster will be removed as well."
-      },
+      "delete": {
+        "title": "Delete {{clusterName}}",
+        "confirmation": "Confirm deletion of cluster {{clusterName}}. The deployed entities associated to this cluster will be removed as well."
+        },
       "destroy": {
-        "title": "Destroy Cluster",
+        "title": "Destroy {{clusterName}}",
         "confirmation": "Confirm destroying cluster {{clusterName}}. The deployed entities associated to this cluster will be destroyed as well. The operation cannot be undone."
       }
     },
@@ -336,10 +335,25 @@
         "namespace": "Namespace:",
         "containersNumber": "Containers:",
         "restartPolicy": "Restart Policy:",
+        "restartPolicyValues": {
+            "Always": "Always",
+            "OnFailure": "On Failure",
+            "Never": "Never"
+        },
         "strategy": "Strategy:",
+        "strategyValues": {
+            "Recreate": "Recreate",
+            "RollingUpdate": "Rolling Update"
+        },
         "replicas": "Replicas:",
         "terminationGracePeriodSeconds": "Termination Grace Period (seconds):",
         "dnsPolicy": "DNS Policy:",
+        "dnsPolicyValues": {
+            "Default": "Default",
+            "ClusterFirst": "Cluster First",
+            "ClusterFirstWithHostNet": "Cluster First With Host Network",
+            "None": "None"
+        },
         "summaryTitle": "Summary",
         "containersTitle": "Containers",
         "containers": {
@@ -365,7 +379,13 @@
             "containerStatuses": {
               "title": "Containers",
               "name": "Container Name",
-              "state": "Status"
+              "state": "Status",
+              "status": {
+                  "RUNNING": "RUNNING",
+                  "WAITING": "WAITING",
+                  "TERMINATED": "TERMINATED",
+                  "UNKNOWN": "UNKNOWN"
+              }
             },
             "volumes": {
               "title": "Volumes",
@@ -373,6 +393,13 @@
               "hostPath": "Path on Host"
             },
             "logsTitle": "Logs"
+        },
+        "state": {
+            "RUNNING": "RUNNING",
+            "PENDING": "PENDING",
+            "SUCCEEDED": "SUCCEEDED",
+            "FAILED": "FAILED",
+            "UNKNOWN": "UNKNOWN"
         }
     },
     "services": {
@@ -400,7 +427,7 @@
         "fieldTitleMasterHostName": "Master Host Name",
         "masterHostNameFieldRequired": "Master host name is required",
         "fieldTitleMasterHostPort": "Master Host Port",
-        "masterHostPortFieldRequired": "Master host port is required",
+        "masterHostPortFieldNotInteger": "Master host port must be an integer bigger than 0.",
         "fieldTitleNumberNodes": "Worker Nodes",
         "workerFieldRequired": "Worker field is required. Only integer values bigger than 0 can be entered.",
         "fieldConnectBy": "Connect By",
@@ -647,10 +674,12 @@
     "title": "Endpoints",
     "searchPlaceholder": "Search for endpoints",
     "new": "New Endpoint",
-    "delete": "Remove",
+    "delete": "Delete",
     "deleteConfirmation": {
-      "title": "Remove Endpoints",
-      "description": "Confirm the removal of the selected endpoints. The operation cannot be undone."
+      "title": "Delete Endpoints",
+      "description": "Confirm the deletion of the selected endpoints. The operation cannot be undone.",
+      "titleSingleEndpoint": "Delete {{endpointName}}",
+      "descriptionSingleEndpoint": "Confirm the deletion of {{endpointName}}. The operation cannot be undone."
     },
     "name": "Name",
     "status": "Status",
@@ -670,11 +699,15 @@
       "testConnectionBtn": "Test Connection",
       "assignmentsTabTitle": "Plan Assignments",
       "assignmentsPlansTitle": "Plans",
+      "groupSelectorTitle": "groups",
+      "groupSearchPlaceholder": "group",
+      "projectSelectorTitle": "projects",
+      "projectSearchPlaceholder": "project",
+      "planSelectorTitle": "plans",
+      "planSearchPlaceholder": "plan",
       "clustersTabTitle": "Clusters",
       "connectionVerified": "Connection to endpoint is successful.",
-      "certificateNotAccepted": "The certificate is not accepted. Cannot proceed.",
-      "assignToProjects": "Assign to Projects",
-      "assignToGroups": "Assign to Groups"
+      "certificateNotAccepted": "The certificate is not accepted. Cannot proceed."
     }
   },
   "requests": {
@@ -683,13 +716,15 @@
     "columnPhase": "Phase",
     "columnRequest": "Request",
     "columnDetails": "Details",
-    "count": "Showing latest {{number}} requests",
+    "count": "Showing last {{number}} requests",
     "error": "Error",
     "eventLogLink": "Go to event log",
-    "containerLink": "Go to containers",
-    "compositeComponentLink": "Go to applications",
-    "containerNetworkLink": "Go to networks",
-    "containerVolumeLink": "Go to volumes",
+    "containerLink": "Go to container",
+    "compositeComponentLink": "Go to application",
+    "containerNetworkLink": "Go to network",
+    "containerVolumeLink": "Go to volume",
+    "kubernetesDeploymentLink": "Go to deployment",
+    "kubernetesClusterLink": "Go to PKS cluster",
     "deleteRequest": {
       "title": "Remove request",
       "description": "Confirm the removal of the selected requests. The operation cannot be undone."
@@ -699,7 +734,7 @@
     "title": "Event Logs",
     "columnDescription": "Description",
     "columnTimestamp": "Time",
-    "count": "Showing latest {{number}} event logs",
+    "count": "Showing last {{number}} event logs",
     "deleteEventLog": {
       "title": "Remove event log",
       "description": "Confirm the removal of the selected event logs. The operation cannot be undone."

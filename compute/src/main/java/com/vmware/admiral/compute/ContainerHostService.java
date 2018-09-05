@@ -761,7 +761,7 @@ public class ContainerHostService extends StatelessService {
         if (sslTrust != null) {
             request.customProperties.put(SSL_TRUST_CERT_PROP_NAME, sslTrust.certificate);
             request.customProperties.put(SSL_TRUST_ALIAS_PROP_NAME,
-                    SslTrustCertificateFactoryService.generateSelfLink(sslTrust));
+                    SslTrustCertificateFactoryService.generateFingerprint(sslTrust));
         }
 
         return request;
@@ -789,7 +789,7 @@ public class ContainerHostService extends StatelessService {
                 .setCompletion((o, ex) -> {
                     if (ex != null) {
                         String innerMessage = toReadableErrorMessage(ex, op);
-                        String message = String.format("Error connecting to %s : %s",
+                        String message = String.format("Error connecting to %s: %s",
                                 cs.address, innerMessage);
                         LocalizableValidationException validationEx = new LocalizableValidationException(
                                 ex.getCause(),
