@@ -13,6 +13,8 @@ package com.vmware.admiral.request;
 
 import static com.vmware.admiral.common.util.AssertUtil.assertNotEmpty;
 import static com.vmware.admiral.common.util.PropertyUtils.mergeCustomProperties;
+import static com.vmware.admiral.common.util.ServiceUtils.EXPIRATION_MICROS;
+import static com.vmware.admiral.common.util.ServiceUtils.getExpirationTimeFromNowInMicros;
 import static com.vmware.admiral.request.utils.RequestUtils.FIELD_NAME_ALLOCATION_REQUEST;
 import static com.vmware.admiral.request.utils.RequestUtils.FIELD_NAME_CONTEXT_ID_KEY;
 import static com.vmware.xenon.common.ServiceDocumentDescription.PropertyIndexingOption.STORE_ONLY;
@@ -186,6 +188,15 @@ public class RequestBrokerService extends
         public String groupResourcePlacementLink;
     }
 
+    private enum RequestType {
+        ALLOCATION_ONLY,
+        PROVISIONING_ONLY,
+        ALLOCATION_AND_PROVISIONING,
+        REMOVE,
+        RESIZE,
+        CLUSTERING
+    }
+
     public RequestBrokerService() {
         super(RequestBrokerState.class, SubStage.class, DISPLAY_NAME);
         super.toggleOption(ServiceOption.PERSISTENCE, true);
@@ -338,6 +349,15 @@ public class RequestBrokerService extends
     }
 
     private void calculateActualRequestedResources(RequestBrokerState state, SubStage next) {
+        if (isPKSClusterType(state)) {
+            proceedTo(next, s -> {
+                s.actualResourceCount = state.resourceCount;
+                s.documentExpirationTimeMicros = getExpirationTimeFromNowInMicros(
+                        EXPIRATION_MICROS * 2);
+            });
+            return;
+        }
+
         if (isProvisionOperation(state)) {
             if (isContainerType(state)) {
                 getContainerDescription(state, (cd) -> {
@@ -1389,8 +1409,7 @@ public class RequestBrokerService extends
             task.tenantLinks = state.tenantLinks;
             task.requestTrackerLink = state.requestTrackerLink;
             // calculate task expiration to be shortly before parent task expiration
-            task.documentExpirationTimeMicros = state.documentExpirationTimeMicros
-                    - TimeUnit.MINUTES.toMicros(5);
+            task.documentExpirationTimeMicros = calculatePKSTaskExpirationTime(state);
 
             sendRequest(Operation
                     .createPost(this, PKSClusterProvisioningTaskService.FACTORY_LINK)
@@ -1433,8 +1452,7 @@ public class RequestBrokerService extends
             task.cleanupRemoval = cleanupRemoval;
             task.removeOnly = removeOnly;
             // calculate task expiration to be shortly before parent task expiration
-            task.documentExpirationTimeMicros = state.documentExpirationTimeMicros
-                    - TimeUnit.MINUTES.toMicros(5);
+            task.documentExpirationTimeMicros = calculatePKSTaskExpirationTime(state);
 
             sendRequest(Operation
                     .createPost(this, PKSClusterRemovalTaskService.FACTORY_LINK)
@@ -1461,8 +1479,7 @@ public class RequestBrokerService extends
             task.tenantLinks = state.tenantLinks;
             task.requestTrackerLink = state.requestTrackerLink;
             // calculate task expiration to be shortly before parent task expiration
-            task.documentExpirationTimeMicros = state.documentExpirationTimeMicros
-                    - TimeUnit.MINUTES.toMicros(5);
+            task.documentExpirationTimeMicros = calculatePKSTaskExpirationTime(state);
 
             sendRequest(Operation
                     .createPost(this, PKSClusterResizeTaskService.FACTORY_LINK)
@@ -1475,6 +1492,12 @@ public class RequestBrokerService extends
                         }
                     }));
         });
+    }
+
+    private long calculatePKSTaskExpirationTime(RequestBrokerState state) {
+        long t = (state.documentExpirationTimeMicros - Utils.getSystemNowMicrosUtc()) / 2;
+        t = Utils.fromNowMicrosUtc(t) - TimeUnit.MINUTES.toMicros(5);
+        return Math.max(t, Utils.fromNowMicrosUtc(TimeUnit.MINUTES.toMicros(5)));
     }
 
     /**
@@ -1686,10 +1709,15 @@ public class RequestBrokerService extends
             return false;
         }
         RequestStatus requestStatus = fromTask(new RequestStatus(), state);
+        requestStatus.customProperties = new HashMap<>();
 
         // add tracked leaf tasks depending on the request type
         if (isProvisionOperation(state)) {
             boolean allocationOnly = isAllocationOperation(state);
+            RequestType reqType = allocationOnly ? RequestType.ALLOCATION_ONLY
+                    : RequestType.ALLOCATION_AND_PROVISIONING;
+            requestStatus.customProperties.put(RequestStatus.CUSTOM_PROP_NAME_REQUEST_TYPE,
+                    reqType.toString());
 
             requestStatus.trackedExecutionTasksByResourceType =
                     SUPPORTED_EXEC_TASKS_BY_RESOURCE_TYPE;
@@ -1749,6 +1777,8 @@ public class RequestBrokerService extends
             trackedTasks.add(RequestBrokerService.DISPLAY_NAME);
             requestStatus.addTrackedTasks(trackedTasks.toArray(new String[0]));
         } else if (isPostAllocationOperation(state)) {
+            requestStatus.customProperties.put(RequestStatus.CUSTOM_PROP_NAME_REQUEST_TYPE,
+                    RequestType.PROVISIONING_ONLY.toString());
             if (isContainerType(state)) {
                 requestStatus.addTrackedTasks(ContainerAllocationTaskService.DISPLAY_NAME);
             } else if (isContainerNetworkType(state)) {
@@ -1758,6 +1788,9 @@ public class RequestBrokerService extends
             }
         } else {
             if (isRemoveOperation(state)) {
+                requestStatus.customProperties.put(RequestStatus.CUSTOM_PROP_NAME_REQUEST_TYPE,
+                        RequestType.REMOVE.toString());
+
                 if (isContainerHostType(state)) {
                     requestStatus.addTrackedTasks(ContainerHostRemovalTaskService.DISPLAY_NAME);
                     requestStatus.addTrackedTasks(ComputeRemovalTaskService.DISPLAY_NAME);
@@ -1775,10 +1808,16 @@ public class RequestBrokerService extends
                     requestStatus.addTrackedTasks(ContainerRemovalTaskService.DISPLAY_NAME);
                 }
             } else if (isResizeOperation(state)) {
+                requestStatus.customProperties.put(RequestStatus.CUSTOM_PROP_NAME_REQUEST_TYPE,
+                        RequestType.RESIZE.toString());
+
                 if (isPKSClusterType(state)) {
                     requestStatus.addTrackedTasks(PKSClusterResizeTaskService.DISPLAY_NAME);
                 }
             } else if (isClusteringOperation(state)) {
+                requestStatus.customProperties.put(RequestStatus.CUSTOM_PROP_NAME_REQUEST_TYPE,
+                        RequestType.CLUSTERING.toString());
+
                 requestStatus.addTrackedTasks(ClusteringTaskService.DISPLAY_NAME);
             } else {
                 requestStatus.addTrackedTasks(ContainerOperationTaskService.DISPLAY_NAME);
