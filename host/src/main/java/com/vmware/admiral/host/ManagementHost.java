@@ -18,7 +18,6 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -36,6 +35,7 @@ import com.vmware.admiral.auth.idm.SessionService;
 import com.vmware.admiral.auth.project.ProjectFactoryService;
 import com.vmware.admiral.auth.project.ProjectService;
 import com.vmware.admiral.auth.util.AuthUtil;
+import com.vmware.admiral.common.serialization.ReleaseConstants;
 import com.vmware.admiral.common.util.AuthUtils;
 import com.vmware.admiral.common.util.ConfigurationUtil;
 import com.vmware.admiral.common.util.SecurityUtils;
@@ -46,7 +46,6 @@ import com.vmware.admiral.host.interceptor.OperationInterceptorRegistry;
 import com.vmware.admiral.host.interceptor.ProjectInterceptor;
 import com.vmware.admiral.host.interceptor.SchedulerPlacementZoneInterceptor;
 import com.vmware.admiral.host.swagger.SwaggerDocumentationService;
-import com.vmware.admiral.request.ContainerLoadBalancerBootstrapService;
 import com.vmware.admiral.service.common.AuthBootstrapService;
 import com.vmware.admiral.service.common.ConfigurationService;
 import com.vmware.admiral.service.common.ConfigurationService.ConfigurationState;
@@ -59,8 +58,6 @@ import com.vmware.photon.controller.model.security.util.EncryptionUtils;
 import com.vmware.photon.controller.model.util.StartServicesHelper.ServiceMetadata;
 import com.vmware.xenon.common.CommandLineArgumentParser;
 import com.vmware.xenon.common.FactoryService;
-import com.vmware.xenon.common.LoaderFactoryService;
-import com.vmware.xenon.common.LoaderService;
 import com.vmware.xenon.common.LocalizableValidationException;
 import com.vmware.xenon.common.Operation;
 import com.vmware.xenon.common.Operation.AuthorizationContext;
@@ -192,17 +189,11 @@ public class ManagementHost extends PostgresServiceHost implements IExtensibilit
         startFabricServices();
         startManagementServices();
         startClosureServices(this, startMockHostAdapterInstance);
-        startLoadBalancerServices(this);
         startSwaggerService();
         startCustomSwaggerService();
 
         log(Level.INFO, "**** Management host started. ****");
 
-        log(Level.INFO, "**** Enabling dynamic service loading... ****");
-
-        enableDynamicServiceLoading();
-
-        log(Level.INFO, "**** Dynamic service loading enabled. ****");
         log(Level.INFO, "**** Migration service starting... ****");
         super.startFactory(new LegacyMigrationTaskService());
         super.startFactory(new MigrationTaskService());
@@ -313,15 +304,6 @@ public class ManagementHost extends PostgresServiceHost implements IExtensibilit
     }
 
     /**
-     * Start all services related to container load balancer support.
-     */
-    protected void startLoadBalancerServices(ServiceHost host) throws Throwable {
-        host.log(Level.INFO, "Container load balancer services starting...");
-        HostInitLoadBalancerServiceConfig.startServices(host);
-        host.log(Level.INFO, "Container load balancer services started.");
-    }
-
-    /**
      * Start all services required to support management of infrastructure and applications.
      */
     protected void startCommonServices() throws Throwable {
@@ -348,8 +330,6 @@ public class ManagementHost extends PostgresServiceHost implements IExtensibilit
 
         registerForServiceAvailability(CaSigningCertService.startTask(this), true,
                 CaSigningCertService.FACTORY_LINK);
-        registerForServiceAvailability(ContainerLoadBalancerBootstrapService.startTask(this), true,
-                ContainerLoadBalancerBootstrapService.FACTORY_LINK);
 
         HostInitComputeServicesConfig.startServices(this, false);
         HostInitComputeBackgroundServicesConfig.startServices(this);
@@ -394,12 +374,14 @@ public class ManagementHost extends PostgresServiceHost implements IExtensibilit
                 "/vendor.",
                 "/scripts.",
                 "/styles.",
+                "/rp",
+                "/subscriptions",
                 "/core/");
         swagger.setExcludeUtilities(true);
 
         // Provide API metainfo
         Info apiInfo = new Info();
-        apiInfo.setVersion("1.3.2");
+        apiInfo.setVersion(ReleaseConstants.CURRENT_API_VERSION);
         apiInfo.setTitle("Admiral");
 
         apiInfo.setLicense(new License().name("Apache 2.0")
@@ -426,40 +408,6 @@ public class ManagementHost extends PostgresServiceHost implements IExtensibilit
         this.startService(extensibilityRegistry);
     }
 
-    /**
-     * The directory from which services are dynamically loaded; see
-     * {@link #enableDynamicServiceLoading()}
-     */
-    private static final String DYNAMIC_SERVICES_PATH = System.getProperty(
-            ManagementHost.class.getPackage().getName() + ".dynamic_services_path",
-            "/etc/xenon/dynamic-services");
-
-    /**
-     * Enable Xenon services to be dynamically loaded, by starting the LoaderService. TODO: This
-     * code is not required for Admiral, but rather for other components that are implemented as
-     * Xenon services, so most of this host startup logic could be extracted out of "admiral" into a
-     * separate component that just starts Xenon, and then "admiral" and other components could just
-     * instruct Xenon to load their services.
-     */
-    void enableDynamicServiceLoading() {
-        // https://github.com/vmware/xenon/wiki/LoaderService#loader-service-host
-        // 1. start the loader service
-        startService(
-                Operation.createPost(
-                        UriUtils.buildUri(
-                                this,
-                                LoaderFactoryService.class)),
-                new LoaderFactoryService());
-        // 2. configure service discovery from DYNAMIC_SERVICES_PATH
-        LoaderService.LoaderServiceState payload = new LoaderService.LoaderServiceState();
-        payload.loaderType = LoaderService.LoaderType.FILESYSTEM;
-        payload.path = DYNAMIC_SERVICES_PATH;
-        payload.servicePackages = new HashMap<>();
-        sendRequest(Operation.createPost(UriUtils.buildUri(this, LoaderFactoryService.class))
-                .setBody(payload)
-                .setReferer(getUri()));
-    }
-
     private void validatePeerArgs() throws Throwable {
         if (nodeGroupPublicUri != null) {
             URI uri = new URI(nodeGroupPublicUri);
@@ -474,16 +422,16 @@ public class ManagementHost extends PostgresServiceHost implements IExtensibilit
                         + " from --securePort");
             }
 
-            if (uri.getPort() < 0 || uri.getPort() >= Short.MAX_VALUE * 2) {
-                throw new IllegalArgumentException("--nodeGroupPublicUri port is not in range");
+            if (uri.getHost() == null) {
+                throw new IllegalArgumentException("--nodeGroupPublicUri host must be set");
             }
 
             if (uri.getScheme() == null) {
                 throw new IllegalArgumentException("--nodeGroupPublicUri scheme must be set");
             }
 
-            if (uri.getHost() == null) {
-                throw new IllegalArgumentException("--nodeGroupPublicUri host must be set");
+            if (uri.getPort() < 0 || uri.getPort() >= Short.MAX_VALUE * 2) {
+                throw new IllegalArgumentException("--nodeGroupPublicUri port is not in range");
             }
         }
     }
@@ -678,7 +626,8 @@ public class ManagementHost extends PostgresServiceHost implements IExtensibilit
     public boolean handleRequest(Service service, Operation inboundOp) {
 
         if (AuthUtil.useAuthConfig(this)) {
-            AuthorizationContext authCtx = inboundOp != null ? inboundOp.getAuthorizationContext() : null;
+            AuthorizationContext authCtx = inboundOp != null ? inboundOp.getAuthorizationContext()
+                    : null;
             AuthUtils.validateSessionData(this, inboundOp, getGuestAuthorizationContext(), authCtx);
         }
 
