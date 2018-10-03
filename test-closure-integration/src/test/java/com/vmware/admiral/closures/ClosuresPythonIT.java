@@ -66,10 +66,10 @@ public class ClosuresPythonIT extends BaseClosureIntegrationTest {
         serviceClient = ServiceClientFactory.createServiceClient(null);
         setupClosureEnv();
         dockerBuildImageLink = getBaseUrl()
-                + createImageBuildRequestUri(IMAGE_NAME + ":1.0", dockerHostCompute
+                + createImageBuildRequestUri(IMAGE_NAME + ":2.0", dockerHostCompute
                 .documentSelfLink);
         dockerBuildBaseImageLink = getBaseUrl()
-                + createImageBuildRequestUri(IMAGE_NAME + "_base:1.0", dockerHostCompute
+                + createImageBuildRequestUri(IMAGE_NAME + "_base:2.0", dockerHostCompute
                 .documentSelfLink);
     }
 
@@ -1485,6 +1485,7 @@ public class ClosuresPythonIT extends BaseClosureIntegrationTest {
         cleanResource(closureDescription.documentSelfLink, serviceClient);
     }
 
+    @Ignore("VBV-2251")
     @Test
     public void executePythonWithBilliardDependencyTest() throws Throwable {
         // Create Closure Definition
@@ -1558,6 +1559,7 @@ public class ClosuresPythonIT extends BaseClosureIntegrationTest {
         cleanResource(closureDescription.documentSelfLink, serviceClient);
     }
 
+    @Ignore("VBV-2251")
     @Test
     public void executePythonWithMissingDependencyTest() throws Throwable {
         // Create Closure Definition
@@ -1644,6 +1646,7 @@ public class ClosuresPythonIT extends BaseClosureIntegrationTest {
         cleanResource(closureDescription.documentSelfLink, serviceClient);
     }
 
+    @Ignore("VBV-2251")
     @Test
     public void executePythonWithDependencyUsingSourceURLasZIPTest() throws Throwable {
         // Create Closure Definition
