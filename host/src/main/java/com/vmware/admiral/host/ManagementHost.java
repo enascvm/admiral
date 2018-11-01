@@ -26,6 +26,7 @@ import javax.net.ssl.SSLContext;
 import io.swagger.models.Contact;
 import io.swagger.models.Info;
 import io.swagger.models.License;
+import io.swagger.models.Scheme;
 
 import com.vmware.admiral.adapter.docker.service.DockerHostAdapterService;
 import com.vmware.admiral.adapter.registry.service.RegistryAdapterService;
@@ -35,6 +36,7 @@ import com.vmware.admiral.auth.idm.SessionService;
 import com.vmware.admiral.auth.project.ProjectFactoryService;
 import com.vmware.admiral.auth.project.ProjectService;
 import com.vmware.admiral.auth.util.AuthUtil;
+import com.vmware.admiral.common.SwaggerDocumentation;
 import com.vmware.admiral.common.serialization.ReleaseConstants;
 import com.vmware.admiral.common.util.AuthUtils;
 import com.vmware.admiral.common.util.ConfigurationUtil;
@@ -317,9 +319,12 @@ public class ManagementHost extends PostgresServiceHost implements IExtensibilit
 
         registerForServiceAvailability(AuthBootstrapService.startTask(this), true,
                 AuthBootstrapService.FACTORY_LINK);
-        registerForServiceAvailability(ProjectsTransformationBootstrapService.startTask(this), true,
-                ProjectsTransformationBootstrapService.FACTORY_LINK,
-                ProjectFactoryService.SELF_LINK);
+        if (!ConfigurationUtil.isVca()) {
+            registerForServiceAvailability(ProjectsTransformationBootstrapService.startTask(this),
+                    true,
+                    ProjectsTransformationBootstrapService.FACTORY_LINK,
+                    ProjectFactoryService.SELF_LINK);
+        }
 
         this.log(Level.INFO, "Common services started.");
     }
@@ -401,8 +406,25 @@ public class ManagementHost extends PostgresServiceHost implements IExtensibilit
     }
 
     protected void startCustomSwaggerService() {
-        SwaggerDocumentationService newSwagger = new SwaggerDocumentationService();
-        this.startService(newSwagger);
+        SwaggerDocumentationService swaggerDocumentationService = new SwaggerDocumentationService();
+        Info info = new Info();
+
+        info.version(ReleaseConstants.CURRENT_API_VERSION)
+                .title(SwaggerDocumentation.InfoConstants.TITLE)
+                .description(SwaggerDocumentation.InfoConstants.DESCRIPTION)
+                .contact(new Contact()
+                        .name(SwaggerDocumentation.InfoConstants.CONTACT_NAME)
+                        .url(SwaggerDocumentation.InfoConstants.CONTACT_URL))
+                .license(new License()
+                        .name(SwaggerDocumentation.InfoConstants.LICENSE_NAME)
+                        .url(SwaggerDocumentation.InfoConstants.LICENSE_URL));
+
+        swaggerDocumentationService
+                .setInfo(info)
+                .setIncludePackages("com.vmware.admiral")
+                .setSchemes(Scheme.HTTP, Scheme.HTTPS);
+
+        this.startService(swaggerDocumentationService);
     }
 
     private void startExtensibilityRegistry() {
@@ -461,10 +483,12 @@ public class ManagementHost extends PostgresServiceHost implements IExtensibilit
         AuthConfigProvider authProvider = AuthUtil.getPreferredAuthConfigProvider();
         // TODO this should be moved to HostInitAuthServiceConfig once HostInitServiceHelper gets
         // support for privileged services
-        addPrivilegedService(SessionService.class);
+        if (!ConfigurationUtil.isVca()) {
+            addPrivilegedService(SessionService.class);
+            addPrivilegedService(ProjectFactoryService.class);
+        }
         addPrivilegedService(PrincipalService.class);
         addPrivilegedService(ProjectService.class);
-        addPrivilegedService(ProjectFactoryService.class);
         addPrivilegedService(DockerHostAdapterService.class);
 
         // NodeMigrationService needs to be privileged in order to not get forbidden during the

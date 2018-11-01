@@ -17,6 +17,9 @@ import { ProjectMembersCountPipe } from './utils/members-count.pipe';
 import { MicroTimePipe } from './utils/microtime-pipe';
 import { SeverityTextPipe } from './utils/severity-text.pipe';
 import { LocaleDatePipe } from './utils/locale-date.pipe';
+import { MemoryMeasurementPipe } from './utils/memory-measurement.pipe';
+import { FrequencyMeasurementPipe } from './utils/frequency-measurement.pipe';
+import { NodeCountPipe } from './utils/node-count.pipe';
 import { BreakOutModalDirective } from "./directives/shared/break-out-modal.directive";
 
 import { AdministrationComponent } from './views/administration/administration.component';
@@ -39,6 +42,7 @@ import { ProjectAddMemberComponent } from "./views/projects/project-details/proj
 import { ProjectAddMembersComponent } from "./views/projects/project-details/project-add-members.component";
 import { ProjectEditMemberComponent } from "./views/projects/project-details/project-edit-member.component";
 import { DeleteConfirmationComponent } from './views/delete-confirmation/delete-confirmation.component';
+import { CredentialsSelectComponent } from './views/credentials/credentials-select.component';
 import { RegistriesComponent } from './views/registries/registries.component';
 import { ConfigurationComponent } from './views/configuration/configuration.component';
 import { LogsComponent } from './views/logs/logs.component';
@@ -81,12 +85,10 @@ import { KubernetesClusterEditExternalComponent } from "./views/kubernetes/clust
 import { GridViewComponent } from './components/grid-view/grid-view.component';
 import { TableViewComponent } from "./views/table-view/table-view.component";
 import { CardComponent } from './components/card/card.component';
-import { StatsComponent } from "./components/stats/stats.component";
 import { LogsScrollComponent } from "./components/logs/logs-scroll.component";
 import { MaximizableBehaviourComponent } from "./components/maximizable-behaviour/maximizable-behaviour.component";
 import { BackButtonComponent } from "./components/back-button/back-button.component";
 import { SimpleSearchComponent } from './components/search/simple-search.component';
-import { DropdownComponent } from './components/dropdown/dropdown.component';
 import { MultiCheckboxSelectorComponent } from "./components/multi-checkbox-selector/multi-checkbox-selector.component";
 import { NavigationContainerComponent } from "./components/navigation-container/navigation-container.component";
 import { LoginComponent } from './components/login/login.component';
@@ -111,6 +113,9 @@ export const ADMIRAL_DECLARATIONS = [
   MicroTimePipe,
   LocaleDatePipe,
   SeverityTextPipe,
+  MemoryMeasurementPipe,
+  FrequencyMeasurementPipe,
+  NodeCountPipe,
   BreakOutModalDirective,
   AllowNavigationDirective,
 
@@ -120,6 +125,7 @@ export const ADMIRAL_DECLARATIONS = [
   DeleteConfirmationComponent,
   SimpleSearchComponent,
   VerifyCertificateComponent,
+  CredentialsSelectComponent,
 
   IdentityManagementComponent,
   UsersGroupsComponent,
@@ -176,11 +182,9 @@ export const ADMIRAL_DECLARATIONS = [
   GridViewComponent,
   TableViewComponent,
   CardComponent,
-  StatsComponent,
   LogsScrollComponent,
   MaximizableBehaviourComponent,
   BackButtonComponent,
-  DropdownComponent,
   MultiCheckboxSelectorComponent,
   NavigationContainerComponent,
   LoginComponent,
