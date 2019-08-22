@@ -103,7 +103,7 @@
 
         <!--Swagger-->
         <javax.ws.rs.version>2.0-m01</javax.ws.rs.version>
-        <swagger.version>1.5.16</swagger.version>
+        <swagger.version>1.5.23</swagger.version>
         <swagger.mvn.plugin.version>3.1.5</swagger.mvn.plugin.version>
 
         <!-- TEST -->
@@ -431,7 +431,7 @@
                                         </goals>
                                     </pluginExecutionFilter>
                                     <action>
-                                        <ignore></ignore>
+                                        <ignore/>
                                     </action>
                                 </pluginExecution>
                             </pluginExecutions>
