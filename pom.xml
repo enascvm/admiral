@@ -87,7 +87,7 @@
         <xenon.group>com.vmware.xenon</xenon.group>
 
         <!-- other -->
-        <bouncycastle.version>1.57</bouncycastle.version>
+        <bouncycastle.version>1.61</bouncycastle.version>
         <jackson.version>2.9.5</jackson.version>
         <httpclient.version>4.5.5</httpclient.version>
         <guava.version>20.0</guava.version>
@@ -431,7 +431,7 @@
                                         </goals>
                                     </pluginExecutionFilter>
                                     <action>
-                                        <ignore></ignore>
+                                        <ignore/>
                                     </action>
                                 </pluginExecution>
                             </pluginExecutions>
